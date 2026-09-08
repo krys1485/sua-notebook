@@ -1,0 +1,1560 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sua Notebook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=EB+Garamond:ital,wght@0,400..700;1,400..700&family=Sacramento&family=Karla:wght@400;500;600;700&family=Caveat:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: light;
+    --bg-a:#fbf7f0;
+    --bg-b:#f6f0f6;
+    --bg-c:#f2eef8;
+    --bg-d:#f8f4ef;
+    --bg:#f6f1ea;
+    --bg-elev:#fffdf8;
+    --card-bg:#fffdf8;
+    --modal-bg:#fffcf6;
+    --ink:#33402c;
+    --ink-soft:#5c6b52;
+    --ink-faint:#9aa691;
+    --line: rgba(125,144,104,.22);
+    --accent-self:#8f7fae;
+    --accent-adventure:#b99b4e;
+    --accent-life:#7d9068;
+    --accent-olive:#6b7f56;
+    --accent: var(--accent-self);
+    --shadow: rgba(80,65,45,.16);
+    --danger:#b3695c;
+    --danger-bg: rgba(179,105,92,.12);
+    --success:#7d9068;
+    --highlight: rgba(168,150,200,.32);
+    --radius: 16px;
+  }
+  /* Light is the notebook's own reference look, matched exactly. Dark is a second, deliberately
+     chosen palette (not a system auto-switch) — the visitor picks between them with the
+     sun/moon toggle in the header, and the choice is remembered per browser. */
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg-a:#211d29;
+    --bg-b:#241f2c;
+    --bg-c:#221e2b;
+    --bg-d:#201c27;
+    --bg:#221e29;
+    --bg-elev:#2b2534;
+    --card-bg:#2b2534;
+    --modal-bg:#2d2736;
+    --ink:#f1ecdf;
+    --ink-soft:#cac2ad;
+    --ink-faint:#8d8672;
+    --line: rgba(241,236,223,.14);
+    --accent-self:#b39ed8;
+    --accent-adventure:#d8b967;
+    --accent-life:#9cc08a;
+    --accent-olive:#9db98a;
+    --accent: var(--accent-self);
+    --shadow: rgba(0,0,0,.55);
+    --danger:#dd8a7c;
+    --danger-bg: rgba(221,138,124,.16);
+    --success:#9cc08a;
+    --highlight: rgba(179,158,214,.26);
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:linear-gradient(180deg, var(--bg-a) 0%, var(--bg-b) 34%, var(--bg-c) 62%, var(--bg-d) 100%);
+    background-attachment:fixed;
+    transition:background .4s ease, color .4s ease;
+    color:var(--ink);
+    font-family:'Karla', ui-sans-serif, system-ui, sans-serif;
+    font-size:16px;
+    line-height:1.6;
+    font-weight:400;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{ font-family:'Cormorant Garamond', Garamond, serif; text-wrap:balance; margin:0; }
+  p{ margin:0; }
+  a{ color:inherit; }
+  button, input, select, textarea{ font-family:inherit; font-size:inherit; color:inherit; }
+  ::selection{ background:var(--accent); color:var(--bg-elev); }
+  .mono{ font-family:'IBM Plex Mono', ui-monospace, monospace; }
+
+  * { scrollbar-width:thin; scrollbar-color:var(--ink-faint) transparent; }
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+  ::-webkit-scrollbar-thumb{ background:color-mix(in srgb, var(--accent) 45%, transparent); border-radius:999px; border:2px solid transparent; background-clip:padding-box; }
+  ::-webkit-scrollbar-thumb:hover{ background:color-mix(in srgb, var(--accent) 65%, transparent); background-clip:padding-box; }
+
+  .visually-hidden{
+    position:absolute; width:1px; height:1px; overflow:hidden;
+    clip:rect(0 0 0 0); white-space:nowrap;
+  }
+
+  .grain{
+    position:fixed; inset:0; z-index:500; pointer-events:none; opacity:.045; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size:140px 140px;
+  }
+
+  /* ---------- topbar ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:30;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px; padding:14px 24px;
+    background:color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+    transition:background .4s ease, border-color .4s ease;
+  }
+  .wordmark{
+    display:flex; align-items:baseline; gap:7px;
+    font-family:'Sacramento', cursive; font-weight:400; font-size:1.7rem;
+    letter-spacing:.01em;
+  }
+  .wordmark em{ font-style:italic; font-family:'Cormorant Garamond', Garamond, serif; font-weight:400; color:var(--ink-soft); font-size:.6em; }
+  .topbar-right{ display:flex; align-items:center; gap:14px; }
+  .topbar-note{
+    font-family:'IBM Plex Mono', monospace; font-size:.72rem;
+    color:var(--ink-faint); letter-spacing:.03em;
+  }
+
+  /* ---------- theme toggle (sun / moon slider) ---------- */
+  .theme-toggle{
+    position:relative; flex:none; width:50px; height:27px; padding:0;
+    border-radius:999px; border:1px solid var(--line);
+    background:var(--bg-elev); cursor:pointer;
+    transition:background .3s ease, border-color .3s ease;
+  }
+  .theme-toggle-icons{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between;
+    padding:0 6px; pointer-events:none; color:var(--ink-faint);
+  }
+  .theme-toggle-icons svg{ width:12px; height:12px; flex:none; }
+  .theme-toggle-thumb{
+    position:absolute; top:2px; left:2px; width:21px; height:21px; border-radius:50%;
+    background:var(--ink); color:var(--bg);
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .3s cubic-bezier(.2,.8,.2,1), background .3s ease, color .3s ease;
+  }
+  .theme-toggle-thumb svg{ width:12px; height:12px; }
+  [data-theme="dark"] .theme-toggle-thumb{ transform:translateX(23px); }
+  .theme-toggle:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative; text-align:center; overflow:hidden;
+    max-width:760px; margin:0 auto; padding:88px 24px 40px;
+  }
+  .hero-deco{ position:relative; height:120px; margin:0 auto -18px; max-width:280px; }
+  .halo{
+    position:absolute; left:50%; top:6px; transform:translateX(-50%);
+    width:170px; height:170px; border-radius:50%;
+    background:radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--accent-self) 40%, transparent) 0%, color-mix(in srgb, var(--accent-self) 16%, transparent) 46%, transparent 72%);
+  }
+  .confetti{ position:absolute; opacity:.75; }
+  .confetti.c1{ left:12px; top:48px; width:8px; height:8px; background:var(--accent-adventure); transform:rotate(45deg); }
+  .confetti.c2{ right:8px; top:36px; width:6px; height:6px; background:var(--accent-self); transform:rotate(45deg); }
+  .confetti.c3{ left:38px; top:84px; width:6px; height:6px; border-radius:50%; background:var(--accent-life); }
+  .confetti.c4{ right:40px; top:78px; width:5px; height:5px; border-radius:50%; background:var(--accent-adventure); }
+  .confetti.c5{ left:90px; top:8px; width:5px; height:5px; background:var(--accent-self); transform:rotate(45deg); }
+  .confetti.c6{ right:86px; top:2px; width:5px; height:5px; background:var(--accent-life); transform:rotate(45deg); }
+  @media (prefers-reduced-motion:no-preference){
+    .halo{ animation:haloPulse 5s ease-in-out infinite; }
+    .confetti{ animation:confettiFloat 6s ease-in-out infinite alternate; }
+    .confetti.c2{ animation-delay:.6s; }
+    .confetti.c3{ animation-delay:1.2s; }
+    .confetti.c4{ animation-delay:1.8s; }
+    .confetti.c5{ animation-delay:.3s; }
+    .confetti.c6{ animation-delay:1.5s; }
+  }
+  @keyframes haloPulse{ 0%,100%{ opacity:.75; } 50%{ opacity:1; } }
+  @keyframes confettiFloat{ from{ transform:translateY(0); } to{ transform:translateY(-6px); } }
+
+  .hero-title{ font-family:'Sacramento', cursive; font-weight:400; font-size:clamp(3.2rem, 9vw, 5.2rem); line-height:1; color:var(--ink); }
+  .hero-title .sub{
+    display:block; font-family:'Cormorant Garamond', Garamond, serif; font-style:italic; font-weight:400;
+    font-size:.3em; letter-spacing:.01em; color:var(--ink-soft); margin-top:12px;
+  }
+  .hero-byline{
+    margin-top:18px; font-size:.68rem; letter-spacing:.24em; text-transform:uppercase; color:var(--ink-faint);
+  }
+  .hero-line{
+    margin:22px auto 0; font-family:'EB Garamond', Garamond, serif; font-style:italic; font-weight:400;
+    font-size:clamp(1.05rem, 2vw, 1.3rem); color:var(--ink); max-width:46ch;
+    line-height:1.5;
+  }
+  .hero-line-attr{
+    margin-top:8px; font-family:'IBM Plex Mono', monospace; font-size:.78rem;
+    color:var(--ink-faint);
+  }
+  .hero-stats{ margin-top:30px; font-size:.76rem; color:var(--ink-faint); letter-spacing:.03em; }
+  .hero-stats strong{ font-weight:600; color:var(--ink-soft); font-variant-numeric:tabular-nums; }
+
+  @media (max-width: 860px){
+    .hero{ padding-top:64px; }
+  }
+
+  /* ---------- toolbar ---------- */
+  main{ max-width:760px; margin:0 auto; padding:0 24px 100px; }
+  .toolbar{
+    display:flex; flex-wrap:wrap; gap:6px; align-items:center; justify-content:flex-end;
+    padding:10px 0 18px; border-bottom:1px solid var(--line); margin-bottom:60px;
+    font-size:.82rem;
+  }
+  .toolbar-field{
+    display:flex; align-items:center; gap:6px; border:1px solid transparent;
+    border-radius:8px; padding:5px 8px; background:transparent; color:var(--ink-faint);
+    transition:border-color .2s ease, background .2s ease, color .2s ease;
+  }
+  .toolbar-field:focus-within{ border-color:var(--line); background:var(--bg-elev); color:var(--ink); }
+  .toolbar-field input, .toolbar-field select{ border:none; background:transparent; outline:none; color:inherit; font-size:.82rem; }
+  .toolbar-field svg{ flex:none; opacity:.65; }
+  #searchInput{ width:120px; }
+  .toolbar-sep{ width:1px; height:16px; background:var(--line); margin:0 4px; }
+  .toolbar-icon-btn{
+    display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px;
+    border-radius:8px; border:1px solid transparent; background:transparent; cursor:pointer;
+    color:var(--ink-faint); transition:color .2s ease, border-color .2s ease, background .2s ease;
+  }
+  .toolbar-icon-btn:hover{ color:var(--ink); border-color:var(--line); background:var(--bg-elev); }
+  .toolbar-icon-btn svg{ width:15px; height:15px; }
+  .toolbar-write{
+    display:inline-flex; align-items:center; gap:6px; border-radius:999px; border:1px solid var(--line);
+    background:transparent; padding:6px 15px; cursor:pointer; font-weight:600; font-size:.8rem;
+    color:var(--ink-soft); transition:border-color .2s ease, color .2s ease, background .2s ease;
+  }
+  .toolbar-write:hover{ border-color:var(--accent); color:var(--ink); background:var(--bg-elev); }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; border-radius:10px; border:1px solid var(--line);
+    background:var(--bg-elev); padding:8px 14px; cursor:pointer; font-weight:600; font-size:.86rem;
+    color:var(--ink); transition:transform .18s cubic-bezier(.23,1,.32,1), border-color .2s ease;
+  }
+  .btn:hover{ border-color:var(--accent); transform:translateY(-1px); }
+  .btn:active{ transform:translateY(0) scale(0.97); }
+  .btn.primary{ background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .btn.danger{ background:var(--danger-bg); color:var(--danger); border-color:transparent; }
+  .btn.ghost{ background:transparent; }
+  .btn:focus-visible, .toolbar-icon-btn:focus-visible, .toolbar-write:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, .entry-row:focus-visible, [contenteditable]:focus-visible{
+    outline:2px solid var(--accent); outline-offset:2px;
+  }
+
+  /* ---------- chapters / entry rows ---------- */
+  .chapters{ display:flex; flex-direction:column; gap:68px; }
+  .chapter-head{ max-width:56ch; margin-bottom:26px; }
+  .chapter-label{ margin:0 0 8px; font-family:'IBM Plex Mono', monospace; font-size:.68rem; letter-spacing:.24em; text-transform:uppercase; color:var(--chapter-color, var(--accent)); }
+  .chapter-heading{ font-family:'Cormorant Garamond', Garamond, serif; font-style:italic; font-weight:500; font-size:1.9rem; margin-bottom:10px; }
+  .chapter-desc{ font-family:'EB Garamond', Garamond, serif; font-size:1.02rem; color:var(--ink-soft); line-height:1.6; }
+  .chapter-divider{ height:1px; margin-top:20px; max-width:200px; background:linear-gradient(90deg, var(--chapter-color, var(--line)), transparent); opacity:.6; }
+
+  .entry-list{ display:flex; flex-direction:column; }
+  .entry-row{
+    display:flex; align-items:center; gap:14px; width:100%; text-align:left;
+    padding:16px 4px; border:none; border-bottom:1px solid var(--line); border-top:none;
+    background:transparent; cursor:pointer; font-family:inherit; color:inherit;
+  }
+  .entry-list .entry-row:first-child{ border-top:1px solid var(--line); }
+  .entry-row-main{ flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; }
+  .entry-row-title{ font-family:'Cormorant Garamond', Garamond, serif; font-style:italic; font-weight:600; font-size:1.28rem; transition:color .2s ease; }
+  .entry-row:hover .entry-row-title, .entry-row:focus-visible .entry-row-title{ color:var(--cat-color, var(--accent)); }
+  .entry-row-meta{ font-family:'IBM Plex Mono', monospace; font-size:.72rem; color:var(--ink-faint); letter-spacing:.02em; }
+  .entry-row-pin{ color:var(--cat-color, var(--accent)); font-size:.8rem; }
+  .entry-row-arrow{ flex:none; color:var(--ink-faint); opacity:0; transform:translateX(-4px); transition:opacity .2s ease, transform .2s ease; }
+  .entry-row:hover .entry-row-arrow, .entry-row:focus-visible .entry-row-arrow{ opacity:1; transform:translateX(0); }
+
+  @media (prefers-reduced-motion:no-preference){
+    .chapter{ opacity:0; transform:translateY(14px); }
+    .chapter.is-visible{ animation:chapterIn .7s cubic-bezier(.2,.8,.2,1) forwards; }
+    .entry-row{ opacity:0; transform:translateY(10px); }
+    .entry-row.is-visible{ animation:rowIn .5s ease both; }
+  }
+  @keyframes chapterIn{ to{ opacity:1; transform:translateY(0); } }
+  @keyframes rowIn{ to{ opacity:1; transform:translateY(0); } }
+
+  /* ---------- sketch icons (hand-drawn-style dot/line compositions) ---------- */
+  .sketch-icon{ position:relative; display:inline-block; flex:none; }
+  .sketch-icon-sm{ width:22px; height:22px; }
+  .sketch-icon-lg{ width:56px; height:56px; }
+
+  .empty{ text-align:center; padding:60px 20px; color:var(--ink-faint); font-family:'EB Garamond', serif; font-style:italic; font-size:1.1rem; }
+
+  /* ---------- footer ---------- */
+  .site-footer{
+    max-width:1180px; margin:60px auto 0; padding:32px 24px 48px;
+    display:flex; flex-direction:column; gap:18px;
+    border-top:1px solid var(--line);
+  }
+  .footer-about{ max-width:none; width:100%; }
+  .footer-label{ margin:0 0 8px; font-size:.68rem; letter-spacing:.24em; text-transform:uppercase; color:var(--accent-life); }
+  .footer-heading{ font-family:'Cormorant Garamond', Garamond, serif; font-style:italic; font-weight:400; font-size:1.5rem; margin-bottom:14px; }
+  .footer-about p{ color:var(--ink-soft); line-height:1.6; max-width:70ch; }
+  .footer-divider{ height:1px; margin:22px 0 0; max-width:220px; background:linear-gradient(90deg, var(--line), transparent); }
+  .footer-meta{ text-align:left; display:flex; align-items:baseline; gap:16px; flex-wrap:wrap; }
+  .footer-meta p{ color:var(--ink-faint); font-size:.86rem; margin:0; }
+  .footer-note{ font-style:italic; font-family:'EB Garamond', serif; color:var(--ink-soft) !important; }
+  .backup-row{ display:flex; gap:8px; margin-top:20px; justify-content:flex-start; }
+  .backup-row button{ font-size:.74rem; padding:6px 11px; }
+  .hidden-input{ display:none; }
+
+  /* ---------- modal ---------- */
+  .modal{
+    position:fixed; inset:0; z-index:100;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    background:color-mix(in srgb, var(--bg) 55%, black 15%);
+    backdrop-filter:blur(4px);
+  }
+  .modal[hidden]{ display:none; }
+  .modal-panel{
+    background:var(--modal-bg); border-radius:20px; max-width:640px; width:100%;
+    max-height:88vh; overflow-y:auto; padding:32px; position:relative;
+    box-shadow:0 30px 60px -20px var(--shadow);
+    border-top:4px solid var(--cat-color, var(--accent));
+  }
+  .editor-panel{ max-width:740px; }
+  @media (prefers-reduced-motion:no-preference){
+    .modal-panel{ animation:panelIn .25s cubic-bezier(.2,.8,.2,1) both; }
+  }
+  @keyframes panelIn{ from{ opacity:0; transform:scale(.97) translateY(8px); } to{ opacity:1; transform:scale(1) translateY(0); } }
+  .modal-close{
+    position:absolute; top:18px; right:18px; width:32px; height:32px; border-radius:50%;
+    border:1px solid var(--line); background:var(--bg-elev); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; color:var(--ink-soft);
+  }
+  .modal-close:hover{ color:var(--ink); border-color:var(--accent); }
+  .reader-icon{ display:flex; justify-content:center; margin:6px 0 18px; }
+  .reader-meta{ display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:6px; }
+  .reader-cat{ font-size:.76rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--cat-color); }
+  .reader-title{ font-family:'Sacramento', cursive; font-weight:400; font-size:2.5rem; line-height:1.2; text-align:center; margin-bottom:6px; }
+  .reader-sub{ font-family:'IBM Plex Mono', monospace; font-size:.76rem; color:var(--ink-faint); text-align:center; }
+  .reader-divider{ height:1px; margin:22px auto 24px; max-width:160px; background:linear-gradient(90deg, transparent, var(--cat-color, var(--line)), transparent); opacity:.55; }
+  .reader-body{
+    font-family:'EB Garamond', serif; font-size:1.15rem; line-height:1.85;
+    color:var(--ink); margin-bottom:26px;
+  }
+  .reader-body mark{ background:linear-gradient(180deg, transparent 62%, var(--highlight) 62%); color:inherit; }
+  .reader-body p{ margin:0 0 1em; }
+  .reader-body ul{ margin:0 0 1em; padding-left:1.3em; }
+  .reader-body img, .reader-body video{ max-width:100%; border-radius:14px; margin:10px 0; display:block; }
+  .reader-actions{ display:flex; flex-wrap:wrap; gap:8px; padding-top:16px; border-top:1px solid var(--line); }
+  .reader-nav{ display:flex; justify-content:space-between; margin-top:18px; }
+
+  .form-row{ display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+  .form-row label{ font-size:.78rem; font-weight:600; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; }
+  .form-row input, .form-row select{
+    border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:var(--bg-elev); color:var(--ink);
+  }
+  .form-three{ display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:12px; }
+  .form-actions{ display:flex; justify-content:space-between; align-items:center; margin-top:16px; }
+
+  /* ---------- rich text editor ---------- */
+  .rte-toolbar{
+    display:flex; flex-wrap:wrap; gap:6px; align-items:center;
+    padding:8px; border:1px solid var(--line); border-radius:12px; background:var(--bg-elev);
+    position:relative; margin-bottom:10px;
+  }
+  .rte-toolbar button, .rte-toolbar select{
+    border:1px solid transparent; background:transparent; border-radius:8px; padding:6px 9px;
+    cursor:pointer; color:var(--ink); font-size:.86rem; display:flex; align-items:center; gap:5px;
+  }
+  .rte-toolbar button:hover, .rte-toolbar select:hover{ background:var(--modal-bg); border-color:var(--line); }
+  .rte-toolbar button svg{ width:16px; height:16px; }
+  .rte-sep{ width:1px; align-self:stretch; background:var(--line); margin:2px 3px; }
+  .rte-swatch{ width:19px; height:19px; border-radius:50%; box-shadow:0 0 0 1px var(--line); cursor:pointer; padding:0; border:2px solid var(--bg-elev); }
+  .rte-color-input{ width:24px; height:24px; border:none; background:none; cursor:pointer; padding:0; }
+  .rte-body{
+    min-height:220px; max-height:320px; overflow-y:auto;
+    border:1px solid var(--line); border-radius:12px; padding:16px 18px;
+    background:var(--bg-elev); font-family:'EB Garamond', Garamond, serif; font-size:1.1rem; line-height:1.7;
+    margin-bottom:8px;
+  }
+  .rte-body img, .rte-body video{ max-width:100%; border-radius:12px; margin:8px 0; display:block; }
+  .rte-body:empty::before{ content:attr(data-placeholder); color:var(--ink-faint); }
+  .rte-note{ font-size:.74rem; color:var(--ink-faint); margin-bottom:14px; }
+
+  .sticker-pop{
+    position:absolute; top:calc(100% + 6px); left:0; z-index:20;
+    background:var(--modal-bg); border:1px solid var(--line); border-radius:14px; padding:10px;
+    display:grid; grid-template-columns:repeat(6, 1fr); gap:4px; box-shadow:0 14px 30px -12px var(--shadow);
+  }
+  .sticker-pop[hidden]{ display:none; }
+  .sticker-tile{ width:36px; height:36px; border:none; background:transparent; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .sticker-tile:hover{ background:var(--bg-elev); }
+
+  /* ---------- toast ---------- */
+  .toast-root{ position:fixed; bottom:22px; left:50%; transform:translateX(-50%); z-index:600; display:flex; flex-direction:column; gap:8px; align-items:center; }
+  .toast{
+    background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:999px;
+    font-size:.86rem; box-shadow:0 10px 24px -10px var(--shadow);
+  }
+  .toast.error{ background:var(--danger); }
+  .toast.success{ background:var(--success); color:var(--bg-elev); }
+  @media (prefers-reduced-motion:no-preference){
+    .toast{ animation:toastIn .25s ease both; }
+  }
+  @keyframes toastIn{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
+
+  .fab{
+    position:fixed; bottom:26px; right:26px; z-index:60;
+    width:56px; height:56px; border-radius:50%; border:none; cursor:pointer;
+    background:var(--ink); color:var(--bg); font-size:1.6rem; line-height:1;
+    box-shadow:0 12px 26px -10px var(--shadow);
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .2s ease;
+  }
+  .fab:hover{ transform:scale(1.06); }
+
+  /* ---------- loading cat ---------- */
+  .loader-overlay{
+    position:fixed; inset:0; z-index:800;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+    background:color-mix(in srgb, var(--bg) 72%, transparent);
+    backdrop-filter:blur(3px);
+  }
+  .loader-overlay[hidden]{ display:none; }
+  .loader-cat{ width:58px; height:58px; overflow:visible; }
+  .loader-text{ font-size:.78rem; color:var(--ink-soft); letter-spacing:.03em; }
+  @media (prefers-reduced-motion:no-preference){
+    .cat-bob{ animation:catBob 1.8s ease-in-out infinite; transform-origin:center; }
+    .cat-tail{ animation:tailSwish 1.3s ease-in-out infinite; transform-origin:74px 84px; }
+    .cat-eyes-open{ animation:eyesOpen 6s ease-in-out infinite; }
+    .cat-eyes-closed{ animation:eyesClosed 6s ease-in-out infinite; }
+    .cat-yarn-scene{ animation:yarnFade 6s ease-in-out infinite; }
+    .cat-paw{ animation:pawSwipe .55s ease-in-out infinite; transform-origin:30px 68px; }
+    .cat-zzz-group{ animation:eyesClosed 6s ease-in-out infinite; }
+    .cat-z1{ animation:zzzFloat 2s ease-in infinite; }
+    .cat-z2{ animation:zzzFloat 2s ease-in infinite .35s; }
+    .cat-z3{ animation:zzzFloat 2s ease-in infinite .7s; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .cat-eyes-closed, .cat-yarn-scene, .cat-zzz-group{ opacity:0; }
+  }
+  @keyframes catBob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-3px); } }
+  @keyframes tailSwish{ 0%,100%{ transform:rotate(-6deg); } 50%{ transform:rotate(10deg); } }
+  @keyframes eyesOpen{ 0%{opacity:1;} 62%{opacity:1;} 66%{opacity:0;} 92%{opacity:0;} 96%{opacity:1;} 100%{opacity:1;} }
+  @keyframes eyesClosed{ 0%{opacity:0;} 62%{opacity:0;} 66%{opacity:1;} 92%{opacity:1;} 96%{opacity:0;} 100%{opacity:0;} }
+  @keyframes yarnFade{ 0%{opacity:0;} 28%{opacity:0;} 32%{opacity:1;} 60%{opacity:1;} 64%{opacity:0;} 100%{opacity:0;} }
+  @keyframes pawSwipe{ 0%,100%{ transform:rotate(0deg); } 50%{ transform:rotate(-24deg); } }
+  @keyframes zzzFloat{ 0%{ transform:translateY(0); opacity:0; } 20%{ opacity:1; } 100%{ transform:translateY(-13px); opacity:0; } }
+
+  @media (max-width:640px){
+    .toolbar{ justify-content:flex-start; }
+    #searchInput{ width:100%; }
+    .form-three{ grid-template-columns:1fr; }
+    .sticker-pop{ grid-template-columns:repeat(4,1fr); }
+  }
+</style>
+
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+
+<div id="loaderOverlay" class="loader-overlay" hidden role="status" aria-live="polite">
+  <svg class="loader-cat" viewBox="0 0 100 100" aria-hidden="true">
+    <g class="cat-bob">
+      <path class="cat-tail" d="M74,84 C90,80 92,55 78,50" fill="none" stroke="var(--accent-self)" stroke-width="8" stroke-linecap="round"/>
+      <ellipse cx="50" cy="78" rx="26" ry="19" fill="var(--accent-self)"/>
+      <path class="cat-paw" d="M30,68 q-8,4 -10,12" fill="none" stroke="var(--accent-self)" stroke-width="7" stroke-linecap="round"/>
+      <path d="M35,38 L27,17 L48,32 Z" fill="var(--accent-self)"/>
+      <path d="M65,38 L73,17 L52,32 Z" fill="var(--accent-self)"/>
+      <path d="M37,34 L33,22 L46,31 Z" fill="var(--accent-adventure)" opacity="0.7"/>
+      <path d="M63,34 L67,22 L54,31 Z" fill="var(--accent-adventure)" opacity="0.7"/>
+      <circle cx="50" cy="46" r="22" fill="var(--accent-self)"/>
+      <g class="cat-eyes-open">
+        <circle cx="42" cy="45" r="2.6" fill="var(--ink)"/>
+        <circle cx="58" cy="45" r="2.6" fill="var(--ink)"/>
+      </g>
+      <g class="cat-eyes-closed" opacity="0">
+        <path d="M37,45 q5,4 10,0" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>
+        <path d="M53,45 q5,4 10,0" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>
+      </g>
+      <path d="M47,52 L53,52 L50,56 Z" fill="var(--accent-adventure)"/>
+      <line x1="26" y1="48" x2="16" y2="46" stroke="var(--ink-faint)" stroke-width="1"/>
+      <line x1="26" y1="52" x2="16" y2="53" stroke="var(--ink-faint)" stroke-width="1"/>
+      <line x1="74" y1="48" x2="84" y2="46" stroke="var(--ink-faint)" stroke-width="1"/>
+      <line x1="74" y1="52" x2="84" y2="53" stroke="var(--ink-faint)" stroke-width="1"/>
+      <g class="cat-yarn-scene" opacity="0">
+        <circle cx="18" cy="80" r="9" fill="var(--accent-adventure)"/>
+        <path d="M11,80 q7,-6 14,0" fill="none" stroke="var(--modal-bg)" stroke-width="1.2"/>
+        <path d="M11,77 q7,7 14,2" fill="none" stroke="var(--modal-bg)" stroke-width="1.2"/>
+      </g>
+      <g class="cat-zzz-group" opacity="0">
+        <text class="cat-z1" x="72" y="30" font-family="'IBM Plex Mono', monospace" font-size="9" fill="var(--accent-life)">z</text>
+        <text class="cat-z2" x="78" y="24" font-family="'IBM Plex Mono', monospace" font-size="12" fill="var(--accent-life)">z</text>
+        <text class="cat-z3" x="86" y="16" font-family="'IBM Plex Mono', monospace" font-size="15" fill="var(--accent-life)">z</text>
+      </g>
+    </g>
+  </svg>
+  <p class="loader-text mono" id="loaderText">waking up the notebook&hellip;</p>
+</div>
+<div id="toastRoot" class="toast-root" aria-live="polite"></div>
+
+<header class="topbar">
+  <div class="wordmark">Sua <em>Notebook</em></div>
+  <div class="topbar-right">
+    <p class="topbar-note mono" id="modeNote">poems, stories, daily pages &amp; soft thoughts</p>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+      <span class="theme-toggle-icons" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/></svg>
+      </span>
+      <span class="theme-toggle-thumb" aria-hidden="true"></span>
+    </button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-deco" aria-hidden="true">
+    <span class="halo"></span>
+    <span class="confetti c1"></span>
+    <span class="confetti c2"></span>
+    <span class="confetti c3"></span>
+    <span class="confetti c4"></span>
+    <span class="confetti c5"></span>
+    <span class="confetti c6"></span>
+  </div>
+  <h1 class="hero-title">Sua<span class="sub">soft pages for softer hours</span></h1>
+  <p class="hero-byline mono">poems, stories &amp; quiet thoughts, kept</p>
+  <p class="hero-line" id="heroLine">A notebook waiting for its first line.</p>
+  <p class="hero-line-attr mono" id="heroLineAttr"></p>
+  <p class="hero-stats mono"><strong id="entryCount">0</strong> pages &middot; <strong id="wordCount">0</strong> words, and counting</p>
+</section>
+
+<main>
+  <div class="toolbar">
+    <label class="toolbar-field">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="search" id="searchInput" placeholder="Search&hellip;" aria-label="Search pages">
+    </label>
+    <label class="toolbar-field">
+      <span class="visually-hidden">Filter by mood</span>
+      <select id="moodSelect" aria-label="Filter by mood">
+        <option value="all">Any mood</option>
+        <option value="self">Self</option>
+        <option value="adventure">Adventure</option>
+        <option value="life">Life</option>
+      </select>
+    </label>
+    <label class="toolbar-field">
+      <span class="visually-hidden">Sort pages</span>
+      <select id="sortSelect" aria-label="Sort pages">
+        <option value="newest">Newest</option>
+        <option value="oldest">Oldest</option>
+        <option value="az">A&ndash;Z</option>
+      </select>
+    </label>
+    <span class="toolbar-sep" aria-hidden="true"></span>
+    <button class="toolbar-icon-btn" id="surpriseBtn" type="button" title="Surprise me" aria-label="Surprise me">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+    </button>
+    <button class="toolbar-icon-btn" id="exportBtn" type="button" title="Export backup" aria-label="Export backup">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+    </button>
+    <button class="toolbar-icon-btn" id="importBtn" type="button" title="Import backup" aria-label="Import backup">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21V9"/><path d="M7 14l5-5 5 5"/><path d="M5 3h14"/></svg>
+    </button>
+    <input type="file" id="importFileInput" class="hidden-input" accept="application/json,.json">
+    <span class="toolbar-sep" aria-hidden="true"></span>
+    <button class="toolbar-write" id="newEntryBtn" type="button">+ Write a page</button>
+  </div>
+
+  <div id="chapters" class="chapters"></div>
+  <p id="emptyState" class="empty" hidden>No pages match. Try clearing your filters.</p>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-about">
+    <p class="footer-label mono">A note</p>
+    <h2 class="footer-heading">About this notebook</h2>
+    <p style="font-family:'EB Garamond', Garamond, serif; font-style:italic; font-size:1.1rem; max-width:44ch;">Every line that almost got away<br>found a home here instead, and stayed.</p>
+    <div class="footer-divider"></div>
+  </div>
+  <div class="footer-meta">
+    <p><span id="entryCountFooter">0</span> pages &middot; <span id="wordCountFooter">0</span> words</p>
+    <p class="footer-note">Carry on writing.</p>
+  </div>
+</footer>
+
+<div id="readerModal" class="modal" hidden></div>
+<div id="editorModal" class="modal" hidden></div>
+<canvas id="exportCanvas" width="1080" height="1350" hidden></canvas>
+
+<script type="application/json" id="seed-data">
+[
+  {"id": "poem-sunshine-after-rain", "kind": "poem", "title": "Sunshine after rain", "category": "self", "date": "2024-02-14", "mood": "resurfacing", "pinned": false, "sample": false, "bodyHtml": "<p>I heard your name in an alleyway,<br>And on a mail pop-up.<br>Back home on the metro, all smiley&mdash;<br>How can I forget anymore?</p><p>I saw your name in a comedy,<br>Thrice this week, is it a sign?<br><mark>I danced on the way back.</mark><br>How can I ever forget again?</p>"},
+  {"id": "poem-sunflowers-basement", "kind": "poem", "title": "Sunflowers in the basement", "category": "self", "date": "2024-03-02", "mood": "keepsake", "pinned": false, "sample": false, "bodyHtml": "<p>Five seconds to the green<br>my mind clicks a trick.<br>Push a dare to your heart<br>crossed my fingers to win this part.</p><p>Pretty sunflowers on the street,<br>how lovely it would be to keep?<br>you smiled, charm to win<br>Two steps closer, make it true</p><p>Alleys passed, roads are crossed<br>Those flowers now, I have locked<br>in the basement of my heart<br>I oath to close.</p>"},
+  {"id": "poem-bumblebee-daisy-summer", "kind": "poem", "title": "A Bumblebee, A Daisy and the Summer", "category": "self", "date": "2024-06-21", "mood": "wonder", "pinned": false, "sample": false, "bodyHtml": "<p>The rain feels warmer on my skin.<br><span style=\"font-style:italic;color:var(--accent-olive)\">Is it you or the summer?</span><br>Day seem longer than the usual.<br><span style=\"font-style:italic;color:var(--accent-olive)\">Is it you or the summer?</span><br>The dragonflies are waving at me from the corner.<br><span style=\"font-style:italic;color:var(--accent-olive)\">Is it you or the summer?</span><br>The roaring sky makes me serene.<br><span style=\"font-style:italic;color:var(--accent-olive)\">Is it you or the summer.</span><br>Ground painting with greens and yellows,<br><span style=\"font-style:italic;color:var(--accent-olive)\">Is it you or the summer?</span><br>The bees kissing me gently,<br><span style=\"font-style:italic;color:var(--accent-olive)\">Is it you or the summer?</span><br>This melody, this rain, this place and this heart makes me wonder,<br><span style=\"font-style:italic;color:var(--accent-olive)\">Is it you or the summer?</span></p>"},
+  {"id": "poem-sing-you-a-song", "kind": "poem", "title": "Sing you a song", "category": "self", "date": "2024-07-05", "mood": "contradiction", "pinned": false, "sample": false, "bodyHtml": "<p>a little silly, a little sly,<br>like running water, finding its ways.<br>a little hopeless, a little lame,<br>making big amends, hard to claim.<br>a little brave, a little scared,<br>never letting anyone, coming near.<br>a little funny, a little slow,<br>can we still make it, through this flow?<br>a little shy, a little brave,<br>webbing big dreams with sky and flames.<br>a little kind, a little mean,<br>piercing your heart, till you leave.<br>a little careful, a little weak,<br>making up stories, for us to keep.<br>a little puzzled, a little willed,<br>dancing along the melodies,<br><mark>the life has to sing.</mark></p>"},
+  {"id": "poem-scrambled-eggs", "kind": "poem", "title": "Scrambled Eggs", "category": "self", "date": "2024-07-19", "mood": "longing", "pinned": false, "sample": false, "bodyHtml": "<p>How sweet is your taste that lingers in my lips.<br>A promise to keep, a book to write.<br>So many thoughts untold, so many splattered in the course.<br>A promise of yesterday, it is hard not to forget.<br>One night of comfort, a second of hurt.<br>But so unfair to me, cause the reasons are unknown.<br>I miss you the most when I am at beautiful places; in hope to share the same.</p>"},
+  {"id": "poem-sweet-candy-heart", "kind": "poem", "title": "My sweet candy heart", "category": "self", "date": "2024-09-10", "mood": "infatuation", "pinned": false, "sample": false, "bodyHtml": "<p>I was made of sugar and pauses,<br>pressed into shape with a word like always.<br>You were light without heat&ndash;<br>ah, the classic neon god,<br>open all night, never home.</p><p>I left my sweetness on counters:<br>chocolate shops, coffee lines,<br>memorizing the way your heart beats.<br>You blinded. You shone. You forgot.</p><p>How beautifully you flicker,<br>fed by attention and distance.<br>My neck aches from looking up,<br>your glow too much to hold&ndash;<br>classic neon god, spare me a breath.</p><p>My heart cracks quietly.<br>Still, it leans toward you&ndash;<br>sugar under light,<br>melting on piece at a time.</p>"},
+  {"id": "poem-crazy-stupid-cupid", "kind": "poem", "title": "Crazy, Stupid Cupid", "category": "self", "date": "2024-10-01", "mood": "half-questions", "pinned": false, "sample": false, "bodyHtml": "<p>I say I love you,<br>but I don't know your favorite color.</p><p>I say I love you,<br>but what would you order in a room full of dessert?</p><p>I say I love you,<br>but would you miss the last train just to stargaze when the destination feels far?</p><p>I say I love you,<br>but if you had a superpower, what would you want it to be?</p><p style=\"font-style:italic;color:var(--accent-self);\">Stolen dances. Stolen sight. Same old dialogue. Same old lies.</p><p>I say I love you,<br>but what is the number one thing on your bucket list, the one you swear by?</p><p>I say I love you,<br>but how do you want to be loved when you find your Miss Right?</p><p>I say I love you,<br>but would you run away from me just because it gets hard?</p><p>I say I love you,<br>but do you like to dance in the rain with road full of people?</p><p style=\"font-style:italic;color:var(--accent-self);\">Waltz thief. That's me. Missed timing. Lost game.</p><p>I say I love you<br>because you called me first when the car crashed &mdash; okay, maybe second, but who compares to Mom?</p><p>I say I love you<br>because I see warmth in your eyes and that touch of yours.</p><p>I say I love you<br>because you choose me over a long-distance flight.</p><p style=\"font-style:italic;color:var(--accent-self);\">Run. Run. I cannot do this again.</p><p>I say I love you<br>because I know your secret hideaway, the one you try to hide.</p><p>I say I love you<br>because you're bad at spending, yet so good with finance.</p><p>I say I love you<br>because you promise me home.</p><p style=\"font-style:italic;color:var(--accent-self);\">Stop this music. I need to wake up.</p>"},
+  {"id": "poem-autumn-after-summer", "kind": "poem", "title": "The Autumn after the Summer", "category": "self", "date": "2024-10-22", "mood": "distance", "pinned": false, "sample": false, "bodyHtml": "<p>The whisper of your voice,<br>Plays loudest in my chest.<br><span style=\"font-style:italic;color:var(--accent-self)\">Oh, my little love,</span><br>Can I write us a song?</p><p>Those sparkling eyes of yours,<br>Mine filled with tears.<br><span style=\"font-style:italic;color:var(--accent-self)\">Oh, my little love,</span><br>Can I hold you near?</p><p>Your words always distant,<br>But this kitchen floor is sinking.<br><span style=\"font-style:italic;color:var(--accent-self)\">Oh, my little love,</span><br>Can I lean toward your heart?</p><p>Your hands too far,<br>I've stretched too far.<br><span style=\"font-style:italic;color:var(--accent-self)\">Oh, my little love,</span><br>Can you hold me through this war?</p><p>Two shades of paint,<br>The sky, all blues.<br><span style=\"font-style:italic;color:var(--accent-self)\">Oh, my little love,</span><br>Can you paint this sky with the clouds?</p><p>The nights filled with stories of us,<br>Now of none.<br><span style=\"font-style:italic;color:var(--accent-self)\">Oh, my little love,</span><br>Can we remember this autumn as love?</p>"},
+  {"id": "poem-such-a-vain", "kind": "poem", "title": "You are such a vain!", "category": "self", "date": "2024-11-14", "mood": "dreaming", "pinned": false, "sample": false, "bodyHtml": "<p>I saw you in my dream last night<br>It was a chase, a thrill.<br>Running to catch the sunset<br>Catching on running breathes.<br>Your eyes full of love,<br>But your words full of vain.<br>I don't trust this heart of mine,<br>Such a fool of your grace.<br>The sunset beyond the hill,<br>Your hands near to hold.<br>Someone afar called us,<br>I heard your heartache such as mine.<br>I saw you in my dream last night<br>And we looked like in love in it.</p>"},
+  {"id": "poem-tango-for-one", "kind": "poem", "title": "The tango for one", "category": "self", "date": "2024-12-05", "mood": "waiting", "pinned": false, "sample": false, "bodyHtml": "<p>It's 5:30 in the morning,<br>It's cold, I'm losing my bearing.<br>&quot;An exit away,&quot; the silence keeps calling;<br>Two hours late, is this a warning?</p><p>I drew you in with circles of my wording,<br>A promise to keep with this pounding.<br>Your eyes in my eyes, still looking,<br>Downing me into this waiting.</p><p>The day stretches in my yearning.<br>It's 21:30 and there is still no showing.<br>I breathe through this tear of wrenching&ndash;<br>how often do you see me crying?</p><p style=\"font-style:italic;color:var(--accent-olive);\">Almost there, almost done.<br>Almost yours, almost love.<br>Never fully, never more.<br>Never yours, never gone.</p>"},
+  {"id": "poem-script-sorrowful-poet", "kind": "poem", "title": "The script of sorrowful poet", "category": "self", "date": "2025-01-18", "mood": "imagined endings", "pinned": false, "sample": false, "bodyHtml": "<p>And if it were the movies, would you have been brave enough?<br>I often imagine the plot playing out&mdash;but why does it always end with two walking away?<br>Subconsciously, I'm on the losing end; consciously, I never make it past the line.<br>Is hurt deeper than hope? Or is all we can hope for not to be hurt?<br>I often think&mdash;if we were in the movies&mdash;would I save myself some space?</p><p>Other times, the space of reality overhears the distance I try to cover.<br>How foolish of me, trying to hold both ends.<br>Sometimes, I imagine a big stone rolling over us like in the old cartoons.<br>Did we escape that a few times? Interesting.<br>I've lost almost all my strength this time.</p><p>Often I imagine, if we were in the movies&mdash;would it have been a good watch?<br>Because I know I would've stayed until the credits rolled.<br>Would you have stayed a little longer, just to keep me company?</p>"},
+  {"id": "poem-a-love-letter", "kind": "poem", "title": "A love letter", "category": "self", "date": "2025-02-09", "mood": "unsent", "pinned": false, "sample": false, "bodyHtml": "<p>And she thought-<br>&quot;But&mdash;<br>Is being in love enough? Are we really meant to be? Am I really worth it? Or maybe in future- what if- can we-&quot;<br>Her heart felt heavy-<br>To be in love and to be loved.<br>Drowned in her fears;<br>she sang-<br>The song of end she will never meet.</p><p>But a glimpse of his gaze ran her mind;<br>That look in his eyes with spark and tears.<br>His dazzling smile while holding her hands-<br>The room full of laughter painting their lines.<br>The street of May, where they first met,<br>Caramel latte and long night talks.<br>That gaze of love, she felt form afar</p><p>So she smiled and read it one last time,<br><span style=\"font-style:italic;color:var(--accent-olive)\">&quot;With you beside, I can see the end.&quot;</span><br>And she whispered with daring voice-<br><span style=\"font-style:italic;color:var(--accent-olive)\">&quot;With you beside, I can see the end.&quot;</span></p>"},
+  {"id": "poem-hollow-heart", "kind": "poem", "title": "Hollow Heart of the Insolent Soul", "category": "self", "date": "2025-03-03", "mood": "self-doubt", "pinned": false, "sample": false, "bodyHtml": "<p>It happened again-<br>It happens always.<br>The mirror is talking to me;<br>Gazing with those melting eyes.<br>The hymn of praises<br>fading out like siren whispering afar.<br>Acceptance is the answer-<br>But why is it so hard?<br><span style=\"font-style:italic;color:var(--accent-self)\">Is something wrong with me?</span><br>I asked-<br>So I looked into her eyes;<br>And I felt warmth from this walls<br>I tried to embrace this warmth-<br>I walked closer and closer;<br>She smiled with the pain ready to summon<br>But this floor crumbled<br>And I fell, deep, deep -<br>Deep, drowning in this thought.<br><span style=\"font-style:italic;color:var(--accent-self)\">Is something wrong with us?</span><br>She asked-</p>"},
+  {"id": "poem-rock-never-move", "kind": "poem", "title": "The Rock who can never move", "category": "self", "date": "2025-03-24", "mood": "aftermath", "pinned": false, "sample": false, "bodyHtml": "<p>A day before nightfall<br>The last part of the story,<br>The scars of the untold<br>And the memories of the past.<br>Meddles into me deep down,<br>The never sailing words I ever told.<br>The sight fading away so far to look<br>The words of two, now of none&mdash;<br>A day before snow<br>Both warm but still cold,<br>Hands unable to reach the sky we once drew.<br>Was that the happy ending we took an oath for<br>Never wanting to lose but still lost in the Abbys.<br>Under the same sky we shared<br>Together but still very far.<br>Only the darkness remains<br>To be remembered and to be loved,<br>The stars we painted and the joy we shared<br>Wanting to hold it back, but now it seems so far.</p>"},
+  {"id": "poem-rise-fall-algae", "kind": "poem", "title": "Rise and Fall of Algae", "category": "self", "date": "2025-04-15", "mood": "unrequited", "pinned": false, "sample": false, "bodyHtml": "<p>A few weeks ago<br>I stood by the sea&mdash;<br>an outsider<br>to nature's beautiful waltz.<br>The wind urged me eastward,<br>yet my gaze searched afar.<br>The beauty of yesterday's nightfall:<br>floors covered<br>with a thousand green eyes.<br>Now&mdash;<br>nothing but barren lies.<br>A tragic love.<br>the greens and their longing,<br>unreturned by the sun.<br>All day they stretch,<br>clinging, enduring,<br>aching toward that distant warmth,<br>a fight they can never win.</p><p>Ocean tides.<br>Setting fins.<br>With warmth they rise to grow again.<br>But can hands like these<br>ever grow long enough?<br>They wait for the first ray to hold,<br>brace themselves<br>against the cruelty of the tides.<br><span style=\"font-style:italic;color:var(--accent-olive)\">How foolish&mdash;<br><mark>how beautifully foolish.....</mark></span></p>"},
+  {"id": "poem-shed-mango-tree", "kind": "poem", "title": "The Shed Under the Mango Tree", "category": "life", "date": "2025-06-01", "mood": "grief", "pinned": false, "sample": false, "bodyHtml": "<p>Somewhere where two lands meet through a river,<br>the distance is crossed through hearts.</p><p>Ages ago, people danced along the bank.<br>Now it is bounded by borders.</p><p>The lone mango tree left on the south side of the river,<br>homing people, hiding them from the cruel sun.</p><p>Long has the shed stood &ndash; but tragedy waits for no one.<br>I have officially outlived the shed too.</p><p>The memories of love dim in my heart.<br>Or the memory of nothing &ndash; not even how I called her.</p><p>Down a lucid dream, I remember being one with the mango tree,<br>an old house, only two of us, a sudden knock.<br><span style=\"font-style:italic;color:var(--accent-olive)\">Ice cream for three. Three to four, and back to three.</span></p><p>They say memory keeps the soul alive.<br>I am scared I am losing the fragments every day.<br>Mostly all, almost gone &ndash;<br>but as long as I live, you stay somewhere within.</p><p>I am sorry for the shed.<br>I keep forgetting her.<br>I don't long for her embrace anymore.</p><p>Maybe it was your wish to be forgotten,<br>or the selfish wish of a two-year-old to forget.<br>I cannot remember the warmth,<br>or the rain I was sheltered from.</p><p>But I am you in the smile and in the tear<br>In most sense and in no sense.<br>So, until the mango tree exist,<br>I know I will be in shed.</p>"},
+  {"id": "poem-six-oclock-bus", "kind": "poem", "title": "The 6 o' clock bus", "category": "life", "date": "2025-07-12", "mood": "hope", "pinned": false, "sample": false, "bodyHtml": "<p>Clouds drew the line<br>To remember last trances of the sun.<br>Skies blushing red,<br>Before the beautiful goodbye.<br>Waves upheaval close by close<br>To make a circles of lies.<br>Far apart moon rises up,<br>With thousands of its sparkling eyes.<br>Roads writing the stories<br>Of the red and green who can never meet.<br>The darkness wants to take over;<br>Still a glimmering hope shines.<br>Passing of the tunnels,<br>Invites the home coming.<br><span style=\"font-style:italic;color:var(--accent-olive)\">You won the day;<br>You did it again.</span></p>"},
+  {"id": "poem-to-my-angels", "kind": "poem", "title": "To my angels", "category": "life", "date": "2025-08-20", "mood": "friendship", "pinned": false, "sample": false, "bodyHtml": "<p>The sky was looking at me with thousand pretty eyes;<br>The sound of cold winds gushing around my shoulder<br>Week seems longer than usual nowadays;<br>Pretty sure I am getting older.<br>I wish I could bottle this youth forever;<br>But can I still breath if I try harder?<br>The night is falling deeper;<br>I hear someone calling me from afar;<br>So I walked toward it to catch my breath.<br>With fear I raise my eyes,<br>But I saw smile full of love and hope.<br><span style=\"font-style:italic;color:var(--accent-olive)\"><mark>This are my people.</mark></span><br>We trip, we laugh, we cry together;<br>We make mistakes and amends;<br>But still we fail to make it right.<br>Walking around with sweatshirts and slipper;<br>Our laugh echos around the streets and corner.<br>I can affirm this is my space.<br>I can affirm this is our youth,<br>With doubts and reassurance.<br>Hoping to make it right next time.</p>"},
+  {"id": "poem-psalm-of-love", "kind": "poem", "title": "Psalm of Love", "category": "life", "date": "2025-10-05", "mood": "faith", "pinned": false, "sample": false, "bodyHtml": "<p>For I am in envy,<br>For I am in sorrow,<br>For I am in reflection<br>of what I want and what I pray for.<br>But hymns are in me,<br>But grace is always strong,<br>For I am in shelter,<br>For I am in hope.</p><p>For I am in jealousy,<br>For I am in greed,<br>For his heart is big,<br>and everything I ask shall be received.<br>But he is love,<br>But his praises are in glory,<br>For I am in trust,<br>For I am his beloved.</p>"}
+]
+</script>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ---------------- theme (light = the notebook's own look, dark = an alternate palette) ---------------- */
+  var THEME_KEY = 'sua-notebook-theme';
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    var toggle = document.getElementById('themeToggle');
+    if (toggle){
+      var isDark = theme === 'dark';
+      toggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+      toggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+    }
+  }
+  function getStoredTheme(){
+    try { return localStorage.getItem(THEME_KEY); } catch(e){ return null; }
+  }
+  function storeTheme(theme){
+    try { localStorage.setItem(THEME_KEY, theme); } catch(e){ /* private browsing etc — theme just won't persist */ }
+  }
+  applyTheme(getStoredTheme() === 'dark' ? 'dark' : 'light');
+
+  var CATS = {
+    self:{ label:'Self', color:'var(--accent-self)' },
+    adventure:{ label:'Adventure', color:'var(--accent-adventure)' },
+    life:{ label:'Life', color:'var(--accent-life)' }
+  };
+  var KINDS = {
+    poem:{ label:'Poem' },
+    story:{ label:'Story' },
+    log:{ label:'Daily Log' },
+    blog:{ label:'Blog' }
+  };
+
+  /* ---------------- sketch icons: small hand-arranged dot/line compositions,
+     one idea per entry, in the notebook's own lavender/gold/sage/olive triad ---------------- */
+  var SKETCH_ICONS = {
+    rings:'<span style="position:absolute;inset:3%;border:1px solid var(--accent-life);border-radius:50%;opacity:.5"></span><span style="position:absolute;inset:20%;border:1px solid var(--accent-self);border-radius:50%;opacity:.5"></span><span style="position:absolute;inset:37%;border:1px solid var(--accent-adventure);border-radius:50%;opacity:.55"></span><span style="position:absolute;left:45%;top:45%;width:9%;height:9%;border-radius:50%;background:var(--accent-life)"></span>',
+    'spin-arcs':'<span style="position:absolute;inset:6%;border-radius:50%;border:1px solid var(--accent-self);border-color:var(--accent-self) var(--accent-self) transparent transparent;transform:rotate(20deg);opacity:.6"></span><span style="position:absolute;inset:25%;border-radius:50%;border:1px solid var(--accent-life);border-color:var(--accent-life) transparent transparent var(--accent-life);transform:rotate(20deg);opacity:.6"></span><span style="position:absolute;inset:42%;border-radius:50%;border:1px solid var(--accent-adventure);border-color:var(--accent-adventure) var(--accent-adventure) transparent transparent;transform:rotate(20deg);opacity:.65"></span><span style="position:absolute;left:47%;top:47%;width:8%;height:8%;border-radius:50%;background:var(--accent-self)"></span>',
+    beads:'<span style="position:absolute;left:19%;top:0;width:1px;height:47%;background:var(--accent-self);opacity:.55"></span><span style="position:absolute;left:13%;top:47%;width:14%;height:14%;border-radius:50%;background:var(--accent-self);opacity:.8"></span><span style="position:absolute;left:50%;top:0;width:1px;height:69%;background:var(--accent-adventure);opacity:.55"></span><span style="position:absolute;left:42%;top:69%;width:17%;height:17%;border-radius:50%;background:var(--accent-adventure);opacity:.8"></span><span style="position:absolute;left:81%;top:0;width:1px;height:34%;background:var(--accent-life);opacity:.55"></span><span style="position:absolute;left:75%;top:34%;width:12%;height:12%;border-radius:50%;background:var(--accent-life);opacity:.8"></span>',
+    diamonds:'<span style="position:absolute;left:16%;top:16%;width:22%;height:22%;background:var(--accent-self);opacity:.75;transform:rotate(45deg)"></span><span style="position:absolute;left:62%;top:31%;width:14%;height:14%;background:var(--accent-adventure);opacity:.8;transform:rotate(45deg)"></span><span style="position:absolute;left:38%;top:62%;width:17%;height:17%;background:var(--accent-life);opacity:.7;transform:rotate(45deg)"></span><span style="position:absolute;left:75%;top:72%;width:9%;height:9%;background:var(--accent-self);opacity:.6;transform:rotate(45deg)"></span>',
+    ascend:'<span style="position:absolute;left:2%;bottom:0;width:12%;height:12%;border-radius:50%;background:var(--accent-life);opacity:.55"></span><span style="position:absolute;left:19%;bottom:25%;width:19%;height:19%;border-radius:50%;background:var(--accent-self);opacity:.7"></span><span style="position:absolute;left:41%;bottom:12%;width:11%;height:11%;border-radius:50%;background:var(--accent-adventure);opacity:.7"></span><span style="position:absolute;left:56%;bottom:41%;width:22%;height:22%;border-radius:50%;background:var(--accent-olive);opacity:.6"></span><span style="position:absolute;left:81%;bottom:19%;width:14%;height:14%;border-radius:50%;background:var(--accent-self);opacity:.55"></span>',
+    bloom:'<span style="position:absolute;left:25%;top:12%;width:50%;height:28%;border-radius:50%;background:var(--accent-adventure);opacity:.5"></span><span style="position:absolute;left:25%;top:12%;width:50%;height:28%;border-radius:50%;background:var(--accent-adventure);opacity:.5;transform:rotate(60deg)"></span><span style="position:absolute;left:25%;top:12%;width:50%;height:28%;border-radius:50%;background:var(--accent-adventure);opacity:.5;transform:rotate(120deg)"></span><span style="position:absolute;left:42%;top:19%;width:16%;height:16%;border-radius:50%;background:var(--accent-olive)"></span><span style="position:absolute;left:48%;top:41%;width:1px;height:53%;background:var(--accent-life)"></span><span style="position:absolute;left:50%;top:66%;width:25%;height:14%;border-radius:0 50% 50% 0;background:var(--accent-life);opacity:.6"></span>',
+    crescent:'<span style="position:absolute;left:22%;top:6%;width:56%;height:69%;border-radius:999px 999px 60% 60%;border:1px solid var(--accent-self);opacity:.6"></span><span style="position:absolute;left:40%;top:34%;width:19%;height:19%;border-radius:50%;background:var(--accent-self);opacity:.5"></span><span style="position:absolute;left:47%;top:75%;width:1px;height:19%;background:var(--accent-self);opacity:.5"></span><span style="position:absolute;left:34%;top:91%;width:31%;height:1px;background:var(--accent-life);opacity:.5"></span>',
+    sunrain:'<span style="position:absolute;left:41%;top:0;width:19%;height:19%;border-radius:50%;background:var(--accent-adventure);opacity:.75"></span><span style="position:absolute;left:12%;top:34%;width:1px;height:31%;background:var(--accent-self);opacity:.7;transform:rotate(16deg)"></span><span style="position:absolute;left:34%;top:44%;width:1px;height:41%;background:var(--accent-self);opacity:.55"></span><span style="position:absolute;left:59%;top:38%;width:1px;height:34%;background:var(--accent-self);opacity:.7"></span><span style="position:absolute;left:81%;top:47%;width:1px;height:28%;background:var(--accent-self);opacity:.5"></span>',
+    'oval-egg':'<span style="position:absolute;left:9%;top:22%;width:81%;height:56%;border-radius:50%;background:var(--bg-elev);border:1px solid var(--line)"></span><span style="position:absolute;left:38%;top:38%;width:27%;height:27%;border-radius:50%;background:var(--accent-adventure);opacity:.85"></span><span style="position:absolute;left:22%;top:69%;width:14%;height:14%;border-radius:50%;background:var(--accent-self);opacity:.5"></span>',
+    letter:'<span style="position:absolute;left:9%;top:22%;width:81%;height:56%;border:1px solid var(--line);background:var(--bg-elev)"></span><span style="position:absolute;left:16%;top:28%;width:34%;height:1px;background:var(--accent-self);opacity:.55"></span><span style="position:absolute;left:16%;top:41%;width:53%;height:1px;background:var(--accent-self);opacity:.4"></span><span style="position:absolute;left:16%;top:53%;width:44%;height:1px;background:var(--accent-self);opacity:.4"></span><span style="position:absolute;left:62%;top:62%;width:16%;height:16%;background:var(--accent-adventure);opacity:.75;transform:rotate(45deg)"></span>',
+    rays:'<span style="position:absolute;left:22%;top:22%;width:56%;height:56%;border-radius:50%;border:1px solid var(--accent-adventure);opacity:.7"></span><span style="position:absolute;left:34%;top:34%;width:31%;height:31%;border-radius:50%;background:var(--accent-adventure);opacity:.3"></span><span style="position:absolute;left:48%;top:0;width:1px;height:16%;background:var(--accent-self);opacity:.6"></span><span style="position:absolute;left:48%;top:84%;width:1px;height:16%;background:var(--accent-self);opacity:.6"></span><span style="position:absolute;left:0;top:48%;width:16%;height:1px;background:var(--accent-life);opacity:.6"></span><span style="position:absolute;left:84%;top:48%;width:16%;height:1px;background:var(--accent-life);opacity:.6"></span>',
+    'arc-cloud':'<span style="position:absolute;left:9%;bottom:22%;width:81%;height:44%;border-radius:999px 999px 0 0;border:1px solid var(--accent-life);border-bottom:none;opacity:.6"></span><span style="position:absolute;left:28%;bottom:22%;width:44%;height:22%;border-radius:999px 999px 0 0;background:var(--accent-adventure);opacity:.45"></span><span style="position:absolute;left:3%;bottom:19%;width:94%;height:1px;background:var(--accent-life);opacity:.6"></span><span style="position:absolute;left:69%;bottom:47%;width:11%;height:11%;border-radius:50%;background:var(--accent-self);opacity:.7"></span>'
+  };
+  var SKETCH_ORDER = ['rings','spin-arcs','beads','diamonds','ascend','bloom','crescent','sunrain','oval-egg','letter','rays','arc-cloud'];
+  var ICON_ASSIGN = {
+    'poem-sunshine-after-rain':'sunrain',
+    'poem-sunflowers-basement':'bloom',
+    'poem-bumblebee-daisy-summer':'rays',
+    'poem-sing-you-a-song':'ascend',
+    'poem-scrambled-eggs':'oval-egg',
+    'poem-sweet-candy-heart':'beads',
+    'poem-crazy-stupid-cupid':'diamonds',
+    'poem-autumn-after-summer':'arc-cloud',
+    'poem-such-a-vain':'rings',
+    'poem-tango-for-one':'spin-arcs',
+    'poem-script-sorrowful-poet':'beads',
+    'poem-a-love-letter':'letter',
+    'poem-hollow-heart':'crescent',
+    'poem-rock-never-move':'arc-cloud',
+    'poem-rise-fall-algae':'beads',
+    'poem-shed-mango-tree':'bloom',
+    'poem-six-oclock-bus':'rays',
+    'poem-to-my-angels':'diamonds',
+    'poem-psalm-of-love':'rings'
+  };
+  function iconKeyFor(p){
+    if (ICON_ASSIGN[p.id]) return ICON_ASSIGN[p.id];
+    var h = 0;
+    for (var i = 0; i < p.id.length; i++){ h = (h * 31 + p.id.charCodeAt(i)) >>> 0; }
+    return SKETCH_ORDER[h % SKETCH_ORDER.length];
+  }
+  function sketchIconHTML(key, cls){
+    return '<span class="sketch-icon ' + (cls||'') + '" aria-hidden="true">' + (SKETCH_ICONS[key] || SKETCH_ICONS.rings) + '</span>';
+  }
+
+  var STICKER_SHAPES = {
+    moon:'<path d="M15,4 A8,8 0 1,0 15,20 A6,6 0 1,1 15,4 Z" fill="#f0d9a3"/>',
+    star:'<path d="M12,3 L14.2,9.2 L20.5,10 L15.7,14.1 L17.2,20.3 L12,16.8 L6.8,20.3 L8.3,14.1 L3.5,10 L9.8,9.2 Z" fill="#c9a3dd"/>',
+    heart:'<path d="M12,20 C12,20 3,14 3,8.5 C3,5.5 5.2,3.5 7.8,3.5 C9.6,3.5 11,4.5 12,6 C13,4.5 14.4,3.5 16.2,3.5 C18.8,3.5 21,5.5 21,8.5 C21,14 12,20 12,20 Z" fill="#f0aab0"/>',
+    flower:'<g fill="#c9a3dd"><ellipse cx="12" cy="7" rx="3" ry="5"/><ellipse cx="12" cy="7" rx="3" ry="5" transform="rotate(72 12 12)"/><ellipse cx="12" cy="7" rx="3" ry="5" transform="rotate(144 12 12)"/><ellipse cx="12" cy="7" rx="3" ry="5" transform="rotate(216 12 12)"/><ellipse cx="12" cy="7" rx="3" ry="5" transform="rotate(288 12 12)"/><circle cx="12" cy="12" r="2.4" fill="#f0d9a3"/></g>',
+    cloud:'<g fill="#ffffff" stroke="#d9cfe0" stroke-width="0.6"><ellipse cx="12" cy="16" rx="8.5" ry="4.2"/><circle cx="8" cy="11" r="4.5"/><circle cx="14.5" cy="9.5" r="5.5"/><circle cx="18.5" cy="12.5" r="4"/></g>',
+    leaf:'<g><ellipse cx="12" cy="12" rx="8" ry="4.4" fill="#a9cbb0" transform="rotate(45 12 12)"/><line x1="6.5" y1="17.5" x2="17.5" y2="6.5" stroke="#6f9e82" stroke-width="1.2"/></g>',
+    candle:'<g><rect x="10" y="10" width="4" height="10" rx="1.2" fill="#f6ecd9"/><ellipse cx="12" cy="7.5" rx="2.1" ry="3.1" fill="#f0b79c"/></g>',
+    ribbon:'<g fill="#c9a3dd"><polygon points="12,12 4,6 4,18"/><polygon points="12,12 20,6 20,18"/><circle cx="12" cy="12" r="2.2" fill="#f0d9a3"/></g>',
+    teacup:'<g fill="none" stroke="#a8cbe6" stroke-width="1.6"><polygon points="6,8 18,8 16.2,17 7.8,17" fill="#eaf3fa" stroke="none"/><ellipse cx="12" cy="8" rx="6" ry="1.8" fill="#ffffff" stroke="#a8cbe6"/><circle cx="19.2" cy="12" r="2.6"/></g>',
+    butterfly:'<g fill="#a8cbe6"><ellipse cx="8" cy="9" rx="5" ry="3.4" transform="rotate(-18 8 9)"/><ellipse cx="16" cy="9" rx="5" ry="3.4" transform="rotate(18 16 9)"/><ellipse cx="8.5" cy="15" rx="3.6" ry="2.6" transform="rotate(16 8.5 15)"/><ellipse cx="15.5" cy="15" rx="3.6" ry="2.6" transform="rotate(-16 15.5 15)"/><line x1="12" y1="6" x2="12" y2="18" stroke="#6b8ca8" stroke-width="1.4"/></g>',
+    raindrop:'<path d="M12,3 C12,3 5.5,12.4 5.5,16.5 A6.5,6.5 0 0 0 18.5,16.5 C18.5,12.4 12,3 12,3 Z" fill="#a8cbe6"/>',
+    sparkle:'<g stroke="#f0aab0" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v5"/><path d="M12 16v5"/><path d="M3 12h5"/><path d="M16 12h5"/></g>',
+    book:'<g><rect x="4" y="5" width="7" height="14" rx="1.2" fill="#f0b79c"/><rect x="13" y="5" width="7" height="14" rx="1.2" fill="#c9a3dd"/></g>'
+  };
+  var STICKER_ORDER = ['moon','star','heart','flower','cloud','leaf','candle','ribbon','teacup','butterfly','raindrop','sparkle'];
+
+  function stickerSVG(key){
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="34" height="34" style="vertical-align:middle;margin:0 2px;" contenteditable="false">' + STICKER_SHAPES[key] + '</svg>';
+  }
+
+  /* ---------------- tiny IndexedDB wrapper ---------------- */
+  var DB_NAME = 'sua-notebook';
+  var DB_STORE = 'entries';
+  var dbPromise = null;
+  function openDB(){
+    if (dbPromise) return dbPromise;
+    dbPromise = new Promise(function(resolve, reject){
+      if (!window.indexedDB){ reject(new Error('no indexeddb')); return; }
+      var req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = function(){
+        var db = req.result;
+        if (!db.objectStoreNames.contains(DB_STORE)) db.createObjectStore(DB_STORE, { keyPath:'id' });
+      };
+      req.onsuccess = function(){ resolve(req.result); };
+      req.onerror = function(){ reject(req.error); };
+    });
+    return dbPromise;
+  }
+  function dbGetAll(){
+    return openDB().then(function(db){
+      return new Promise(function(resolve, reject){
+        var tx = db.transaction(DB_STORE, 'readonly');
+        var req = tx.objectStore(DB_STORE).getAll();
+        req.onsuccess = function(){ resolve(req.result || []); };
+        req.onerror = function(){ reject(req.error); };
+      });
+    });
+  }
+  function dbPut(entry){
+    return openDB().then(function(db){
+      return new Promise(function(resolve, reject){
+        var tx = db.transaction(DB_STORE, 'readwrite');
+        tx.objectStore(DB_STORE).put(entry);
+        tx.oncomplete = function(){ resolve(); };
+        tx.onerror = function(){ reject(tx.error); };
+      });
+    });
+  }
+  function dbDelete(id){
+    return openDB().then(function(db){
+      return new Promise(function(resolve, reject){
+        var tx = db.transaction(DB_STORE, 'readwrite');
+        tx.objectStore(DB_STORE).delete(id);
+        tx.oncomplete = function(){ resolve(); };
+        tx.onerror = function(){ reject(tx.error); };
+      });
+    });
+  }
+  function dbPutMany(entries){
+    return openDB().then(function(db){
+      return new Promise(function(resolve, reject){
+        var tx = db.transaction(DB_STORE, 'readwrite');
+        var store = tx.objectStore(DB_STORE);
+        entries.forEach(function(e){ store.put(e); });
+        tx.oncomplete = function(){ resolve(); };
+        tx.onerror = function(){ reject(tx.error); };
+      });
+    });
+  }
+
+  var ENTRIES = [];
+  var state = { filterMood:'all', search:'', sort:'newest', currentReaderId:null };
+  var savedRange = null;
+  var revealObserver = null;
+
+  var KIND_ORDER = ['poem','story','log','blog'];
+  var KIND_COPY = {
+    poem:{ act:'Act I &mdash; Poems', heading:'Verses, kept', desc:'Lines that arrived on their own &mdash; over a mountain pass, at a kitchen window, in the middle of an ordinary Tuesday.', color:'var(--accent-life)' },
+    story:{ act:'Act II &mdash; Stories', heading:'Small fictions', desc:'Moments dressed up as tales, because some feelings only fit inside a story.', color:'var(--accent-self)' },
+    log:{ act:'Act III &mdash; Daily Log', heading:'The ordinary, logged', desc:'Not every day is a poem. Some days are just true, and worth keeping anyway.', color:'var(--accent-life)' },
+    blog:{ act:'Act IV &mdash; Blog', heading:'Talking it through', desc:'Longer thoughts, for whenever there&rsquo;s more to say than a page can hold in verse.', color:'var(--accent-self)' }
+  };
+
+  function $(sel, root){ return (root||document).querySelector(sel); }
+  function $all(sel, root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); }
+
+  function escapeHTML(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function slugify(s){
+    return String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'entry';
+  }
+  function stripHtml(html){
+    var div = document.createElement('div');
+    div.innerHTML = html || '';
+    return (div.textContent || '').replace(/\s+/g,' ').trim();
+  }
+  function wordCount(html){ var t = stripHtml(html); var m = t.match(/\S+/g); return m ? m.length : 0; }
+  function readTime(html){ return Math.max(1, Math.round(wordCount(html)/130)); }
+  function firstLine(html){
+    var t = stripHtml(html);
+    return t.length > 130 ? t.slice(0,130) + '&hellip;' : t;
+  }
+  function formatDate(iso){
+    var d = new Date(iso + 'T00:00:00');
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+  }
+
+  /* ---------------- toast ---------------- */
+  function toast(msg, kind, ms){
+    var root = document.getElementById('toastRoot');
+    var el = document.createElement('div');
+    el.className = 'toast' + (kind ? ' ' + kind : '');
+    el.textContent = msg;
+    root.appendChild(el);
+    setTimeout(function(){ el.remove(); }, ms || 3000);
+  }
+
+  /* ---------------- loading cat ---------------- */
+  var loaderStart = 0;
+  function showLoader(text){
+    loaderStart = Date.now();
+    var t = document.getElementById('loaderText');
+    if (t) t.textContent = text || 'loading…';
+    document.getElementById('loaderOverlay').hidden = false;
+  }
+  function hideLoader(minMs){
+    var elapsed = Date.now() - loaderStart;
+    var wait = Math.max(0, (minMs || 0) - elapsed);
+    setTimeout(function(){ document.getElementById('loaderOverlay').hidden = true; }, wait);
+  }
+
+  /* ---------------- seeding (versioned) ----------------
+     A visitor's browser keeps its own saved copy of the notebook's entries
+     (IndexedDB), so simply changing the seed-data below does nothing for
+     anyone who already opened the page once. SEED_VERSION exists to force
+     a one-time refresh: bump it whenever the seed content changes, and any
+     browser still on an older version has its stale seed rows replaced
+     with the current ones. KNOWN_SEED_IDS lists every id any seed
+     revision has ever used, so the refresh only ever touches rows that
+     came from a seed — anything the visitor wrote themselves keeps a
+     freshly-generated 'entry-...' id and is never touched. */
+  var SEED_VERSION = 1;
+  var SEED_VERSION_KEY = 'sua-notebook-seed-version';
+  var KNOWN_SEED_IDS = [
+    /* placeholder poems, removed */
+    'adventure-pass-4200','self-undoing','self-mirror-late','adventure-road-forgot-name','life-tea-before-sunrise','life-small-weather',
+    /* placeholder story/log/blog examples, removed */
+    'story-cartographer','story-museum-of-small-bravery','log-ordinary-tuesday','log-noticed-about-myself','blog-why-i-started',
+    /* the notebook owner's own real poems, current */
+    'poem-sunshine-after-rain','poem-sunflowers-basement','poem-bumblebee-daisy-summer','poem-sing-you-a-song','poem-scrambled-eggs',
+    'poem-sweet-candy-heart','poem-crazy-stupid-cupid','poem-autumn-after-summer','poem-such-a-vain','poem-tango-for-one',
+    'poem-script-sorrowful-poet','poem-a-love-letter','poem-hollow-heart','poem-rock-never-move','poem-rise-fall-algae',
+    'poem-shed-mango-tree','poem-six-oclock-bus','poem-to-my-angels','poem-psalm-of-love'
+  ];
+  function getSeedVersion(){
+    try { return parseInt(localStorage.getItem(SEED_VERSION_KEY) || '0', 10) || 0; } catch(e){ return 0; }
+  }
+  function storeSeedVersion(v){
+    try { localStorage.setItem(SEED_VERSION_KEY, String(v)); } catch(e){ /* private browsing etc */ }
+  }
+  function seedIfEmpty(){
+    var seedEl = document.getElementById('seed-data');
+    var seed = [];
+    try { seed = JSON.parse(seedEl.textContent || '[]'); } catch(e){ seed = []; }
+
+    return dbGetAll().then(function(rows){
+      if (rows.length === 0){
+        storeSeedVersion(SEED_VERSION);
+        return dbPutMany(seed).then(function(){ ENTRIES = seed; });
+      }
+      if (getSeedVersion() >= SEED_VERSION){
+        ENTRIES = rows;
+        return;
+      }
+      // migrate: drop stale rows that came from an older seed, keep anything
+      // the visitor actually wrote themselves, then lay the current seed back down
+      var staleIds = rows.map(function(r){ return r.id; }).filter(function(id){ return KNOWN_SEED_IDS.indexOf(id) !== -1; });
+      var keep = rows.filter(function(r){ return KNOWN_SEED_IDS.indexOf(r.id) === -1; });
+      return Promise.all(staleIds.map(dbDelete))
+        .then(function(){ return dbPutMany(seed); })
+        .then(function(){
+          storeSeedVersion(SEED_VERSION);
+          ENTRIES = keep.concat(seed);
+        });
+    });
+  }
+
+  /* ---------------- computing visible list ---------------- */
+  function computeVisible(){
+    var list = ENTRIES.filter(function(p){ return state.filterMood === 'all' || p.category === state.filterMood; });
+    if (state.search.trim()){
+      var q = state.search.toLowerCase();
+      list = list.filter(function(p){
+        return p.title.toLowerCase().indexOf(q) !== -1 ||
+               stripHtml(p.bodyHtml).toLowerCase().indexOf(q) !== -1 ||
+               (p.mood||'').toLowerCase().indexOf(q) !== -1;
+      });
+    }
+    list = list.slice().sort(function(a,b){
+      if (state.sort === 'az') return a.title.localeCompare(b.title);
+      var da = new Date(a.date).getTime(), db2 = new Date(b.date).getTime();
+      return state.sort === 'oldest' ? da - db2 : db2 - da;
+    });
+    list.sort(function(a,b){ return (b.pinned?1:0) - (a.pinned?1:0); });
+    return list;
+  }
+
+  /* ---------------- rendering: chapters ---------------- */
+  function entryRowHTML(p){
+    var cat = CATS[p.category] || CATS.life;
+    return '' +
+      '<button type="button" class="entry-row" data-id="' + p.id + '" style="--cat-color:' + cat.color + '">' +
+        sketchIconHTML(iconKeyFor(p), 'sketch-icon-sm') +
+        '<span class="entry-row-main">' +
+          '<span class="entry-row-title">' + escapeHTML(p.title) + (p.pinned ? ' <span class="entry-row-pin" title="Pinned">&#9733;</span>' : '') + '</span>' +
+          '<span class="entry-row-meta mono">' + formatDate(p.date) + (p.mood ? ' &middot; ' + escapeHTML(p.mood) : '') + ' &middot; ' + readTime(p.bodyHtml) + ' min' + (p.sample ? ' &middot; sample' : '') + '</span>' +
+        '</span>' +
+        '<span class="entry-row-arrow" aria-hidden="true">&rarr;</span>' +
+      '</button>';
+  }
+
+  function chapterHTML(kind, entries){
+    var copy = KIND_COPY[kind];
+    return '' +
+      '<section class="chapter" data-kind="' + kind + '" style="--chapter-color:' + copy.color + '">' +
+        '<div class="chapter-head">' +
+          '<p class="chapter-label mono">' + copy.act + '</p>' +
+          '<h2 class="chapter-heading">' + copy.heading + '</h2>' +
+          '<p class="chapter-desc">' + copy.desc + '</p>' +
+          '<div class="chapter-divider"></div>' +
+        '</div>' +
+        '<div class="entry-list">' + entries.map(entryRowHTML).join('') + '</div>' +
+      '</section>';
+  }
+
+  function renderChapters(){
+    var container = $('#chapters');
+    var visible = computeVisible();
+    var byKind = {};
+    visible.forEach(function(p){ (byKind[p.kind] = byKind[p.kind] || []).push(p); });
+    container.innerHTML = KIND_ORDER
+      .filter(function(k){ return byKind[k] && byKind[k].length; })
+      .map(function(k){ return chapterHTML(k, byKind[k]); })
+      .join('');
+    $('#emptyState').hidden = visible.length > 0;
+    $all('.entry-row', container).forEach(function(el){
+      el.addEventListener('click', function(){ openReader(el.getAttribute('data-id')); });
+    });
+    observeReveals();
+    renderStats();
+  }
+
+  function observeReveals(){
+    var chapters = $all('.chapter');
+    var rows = $all('.entry-row');
+    if (!('IntersectionObserver' in window)){
+      chapters.forEach(function(el){ el.classList.add('is-visible'); });
+      rows.forEach(function(el){ el.classList.add('is-visible'); });
+      return;
+    }
+    if (revealObserver) revealObserver.disconnect();
+    revealObserver = new IntersectionObserver(function(observed){
+      observed.forEach(function(item){
+        if (item.isIntersecting){
+          item.target.classList.add('is-visible');
+          revealObserver.unobserve(item.target);
+        }
+      });
+    }, { threshold:0.1, rootMargin:'0px 0px -40px 0px' });
+    chapters.forEach(function(el){ revealObserver.observe(el); });
+    rows.forEach(function(el, i){
+      el.style.animationDelay = (Math.min(i, 8) * 0.04) + 's';
+      revealObserver.observe(el);
+    });
+  }
+
+  function renderStats(){
+    var words = ENTRIES.reduce(function(s,p){ return s + wordCount(p.bodyHtml); }, 0);
+    ['entryCount','entryCountFooter'].forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent = ENTRIES.length; });
+    ['wordCount','wordCountFooter'].forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent = words.toLocaleString(); });
+  }
+
+  function renderHero(){
+    var featured = ENTRIES.find(function(p){ return p.pinned; }) || ENTRIES[0];
+    var lineEl = document.getElementById('heroLine');
+    var attrEl = document.getElementById('heroLineAttr');
+    if (featured){
+      lineEl.innerHTML = '&ldquo;' + firstLine(featured.bodyHtml) + '&rdquo;';
+      attrEl.textContent = '— from “' + featured.title + '”';
+    } else {
+      lineEl.textContent = 'A notebook waiting for its first line.';
+      attrEl.textContent = '';
+    }
+  }
+
+  /* ---------------- reader modal ---------------- */
+  function readerListNow(){ return computeVisible(); }
+
+  function openReader(id){
+    var p = ENTRIES.find(function(x){ return x.id === id; });
+    if (!p) return;
+    state.currentReaderId = id;
+    var cat = CATS[p.category] || CATS.life;
+    var kind = KINDS[p.kind] || KINDS.poem;
+    var modal = document.getElementById('readerModal');
+    modal.innerHTML =
+      '<div class="modal-panel" style="--cat-color:' + cat.color + '" role="dialog" aria-modal="true" aria-labelledby="readerTitle">' +
+        '<button class="modal-close" id="readerCloseBtn" aria-label="Close">&times;</button>' +
+        '<div class="reader-icon">' + sketchIconHTML(iconKeyFor(p), 'sketch-icon-lg') + '</div>' +
+        '<div class="reader-meta"><span class="reader-cat">' + kind.label + ' &middot; ' + cat.label + '</span>' +
+          (p.pinned ? '<span title="Pinned">&#9733;</span>' : '') + '</div>' +
+        '<h2 class="reader-title" id="readerTitle">' + escapeHTML(p.title) + '</h2>' +
+        '<p class="reader-sub mono">' + formatDate(p.date) + (p.mood ? ' &middot; ' + escapeHTML(p.mood) : '') + ' &middot; ' + readTime(p.bodyHtml) + ' min read' + '</p>' +
+        '<div class="reader-divider"></div>' +
+        '<div class="reader-body">' + p.bodyHtml + '</div>' +
+        '<div class="reader-actions">' +
+          '<button class="btn" id="readerPinBtn">' + (p.pinned ? '&#9733; Unpin' : '&#9734; Pin') + '</button>' +
+          '<button class="btn" id="readerEditBtn">Edit</button>' +
+          '<button class="btn" id="readerCopyBtn">Copy text</button>' +
+          '<button class="btn" id="readerDownloadBtn">Save as image</button>' +
+          '<button class="btn danger" id="readerDeleteBtn">Delete</button>' +
+        '</div>' +
+        '<div class="reader-nav"><button class="btn" id="readerPrevBtn">&larr; Previous</button><button class="btn" id="readerNextBtn">Next &rarr;</button></div>' +
+      '</div>';
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+
+    $('#readerCloseBtn', modal).addEventListener('click', closeReader);
+    $('#readerCopyBtn', modal).addEventListener('click', function(){ copyEntry(p); });
+    $('#readerDownloadBtn', modal).addEventListener('click', function(){ downloadEntryImage(p); });
+    $('#readerPinBtn', modal).addEventListener('click', function(){ togglePin(p.id); });
+    $('#readerEditBtn', modal).addEventListener('click', function(){ closeReader(); openEditor(p.id); });
+    $('#readerDeleteBtn', modal).addEventListener('click', function(){ deleteEntry(p.id); });
+    $('#readerPrevBtn', modal).addEventListener('click', function(){ stepReader(-1); });
+    $('#readerNextBtn', modal).addEventListener('click', function(){ stepReader(1); });
+  }
+
+  function closeReader(){
+    var modal = document.getElementById('readerModal');
+    modal.hidden = true;
+    modal.innerHTML = '';
+    document.body.style.overflow = '';
+    state.currentReaderId = null;
+  }
+
+  function stepReader(dir){
+    var list = readerListNow();
+    var idx = list.findIndex(function(p){ return p.id === state.currentReaderId; });
+    if (idx === -1 || list.length === 0) return;
+    var next = (idx + dir + list.length) % list.length;
+    openReader(list[next].id);
+  }
+
+  function togglePin(id){
+    var p = ENTRIES.find(function(x){ return x.id === id; });
+    if (!p) return;
+    p.pinned = !p.pinned;
+    dbPut(p).then(function(){
+      renderChapters(); renderHero();
+      if (!document.getElementById('readerModal').hidden) openReader(id);
+    });
+  }
+
+  function deleteEntry(id){
+    dbDelete(id).then(function(){
+      ENTRIES = ENTRIES.filter(function(x){ return x.id !== id; });
+      closeReader();
+      renderChapters(); renderHero();
+      toast('Page deleted', 'info');
+    });
+  }
+
+  function copyEntry(p){
+    var text = p.title + '\n\n' + stripHtml(p.bodyHtml) + '\n\n— ' + (CATS[p.category]?CATS[p.category].label:'') + ', ' + formatDate(p.date);
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ toast('Copied to clipboard', 'success'); })
+        .catch(function(){ toast('Could not copy — select and copy manually.', 'error'); });
+    } else {
+      toast('Clipboard not available here.', 'error');
+    }
+  }
+
+  /* ---------------- image export ---------------- */
+  function wrapLines(ctx, text, maxWidth){
+    var out = [];
+    text.split('\n').forEach(function(paragraph){
+      if (paragraph.trim() === ''){ out.push(''); return; }
+      var words = paragraph.split(' ');
+      var line = '';
+      words.forEach(function(word){
+        var test = line ? line + ' ' + word : word;
+        if (ctx.measureText(test).width > maxWidth && line){
+          out.push(line); line = word;
+        } else { line = test; }
+      });
+      out.push(line);
+    });
+    return out;
+  }
+
+  function drawEntryCard(p){
+    var canvas = document.getElementById('exportCanvas');
+    var ctx = canvas.getContext('2d');
+    var w = canvas.width, h = canvas.height;
+    var cat = CATS[p.category] || CATS.life;
+    var kind = KINDS[p.kind] || KINDS.poem;
+    var colorVal = getComputedStyle(document.documentElement).getPropertyValue(cat.color.replace('var(','').replace(')','')).trim() || '#8f7fae';
+    var bg = getComputedStyle(document.documentElement).getPropertyValue('--bg-elev').trim() || '#fffbfd';
+    var ink = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#33402c';
+
+    ctx.clearRect(0,0,w,h);
+    var grad = ctx.createLinearGradient(0,0,0,h);
+    grad.addColorStop(0, bg);
+    grad.addColorStop(1, colorVal + '33');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,w,h);
+
+    ctx.fillStyle = '#f6ecd9';
+    ctx.globalAlpha = 0.75;
+    ctx.beginPath(); ctx.arc(w - 130, 130, 40, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = colorVal;
+    var petals = [[w*0.14,h*0.2,5],[w*0.85,h*0.32,4],[w*0.08,h*0.55,4.5],[w*0.9,h*0.6,5],[w*0.18,h*0.85,4],[w*0.82,h*0.9,4.5]];
+    petals.forEach(function(pt){
+      ctx.globalAlpha = 0.35;
+      ctx.beginPath(); ctx.arc(pt[0], pt[1], pt[2], 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = colorVal;
+    ctx.font = '600 26px "IBM Plex Mono", monospace';
+    ctx.textBaseline = 'top';
+    ctx.fillText((kind.label + ' · ' + cat.label).toUpperCase(), 70, 80);
+
+    ctx.fillStyle = ink;
+    ctx.font = '600 56px "Cormorant Garamond", Georgia, serif';
+    var titleLines = wrapLines(ctx, p.title, w - 140);
+    var ty = 150;
+    titleLines.forEach(function(l){ ctx.fillText(l, 70, ty); ty += 66; });
+
+    ctx.strokeStyle = colorVal;
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(70, ty + 10); ctx.lineTo(150, ty + 10); ctx.stroke();
+
+    ctx.font = 'italic 34px "EB Garamond", Georgia, serif';
+    ctx.fillStyle = ink;
+    var bodyLines = wrapLines(ctx, stripHtml(p.bodyHtml), w - 140);
+    var by = ty + 60;
+    var maxY = h - 130;
+    for (var i=0;i<bodyLines.length && by < maxY; i++){ ctx.fillText(bodyLines[i], 70, by); by += 46; }
+
+    ctx.font = '500 22px "IBM Plex Mono", monospace';
+    ctx.fillStyle = colorVal;
+    ctx.fillText(formatDate(p.date) + '   ·   Sua Notebook', 70, h - 80);
+  }
+
+  function saveBlobAsFile(blob, filename){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+  }
+
+  function downloadEntryImage(p){
+    showLoader('painting your page…');
+    var ready = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+    ready.then(function(){
+      drawEntryCard(p);
+      var canvas = document.getElementById('exportCanvas');
+      var filename = slugify(p.title) + '.png';
+      canvas.toBlob(function(blob){
+        if (!blob){ hideLoader(300); toast('Could not create the image.', 'error'); return; }
+        if (window.claude && typeof window.claude.use === 'function'){
+          window.claude.use('downloads').then(function(dl){
+            if (!dl){ saveBlobAsFile(blob, filename); hideLoader(700); return; }
+            dl.save({ filename: filename, data: blob }).then(function(){
+              hideLoader(400);
+              toast('Saved ' + filename, 'success');
+            }).catch(function(err){
+              hideLoader(400);
+              var code = err && err.code;
+              if (code === 'declined'){ /* silent */ }
+              else if (code === 'unavailable' || code === 'not_granted'){ saveBlobAsFile(blob, filename); }
+              else { toast('Could not save the image here.', 'error'); }
+            });
+          }).catch(function(){ saveBlobAsFile(blob, filename); hideLoader(700); });
+        } else {
+          saveBlobAsFile(blob, filename);
+          hideLoader(700);
+          toast('Saved ' + filename, 'success');
+        }
+      }, 'image/png');
+    });
+  }
+
+  /* ---------------- rich text toolbar helpers ---------------- */
+  function saveSelectionIfInside(container){
+    var sel = window.getSelection();
+    if (sel && sel.rangeCount > 0){
+      var r = sel.getRangeAt(0);
+      if (container.contains(r.commonAncestorContainer)) savedRange = r.cloneRange();
+    }
+  }
+  function restoreSelection(container){
+    container.focus();
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    if (savedRange){ sel.addRange(savedRange); }
+    else {
+      var r = document.createRange(); r.selectNodeContents(container); r.collapse(false);
+      sel.addRange(r);
+    }
+  }
+  function exec(cmd, val){ document.execCommand(cmd, false, val || null); }
+
+  function resizeImageFile(file, maxDim, quality){
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onerror = function(){ reject(reader.error); };
+      reader.onload = function(){
+        var img = new Image();
+        img.onerror = function(){ reject(new Error('bad image')); };
+        img.onload = function(){
+          var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+          var w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+          var canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality || 0.85));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /* ---------------- editor modal ---------------- */
+  function toolbarHTML(){
+    var colors = [
+      ['#33402c','ink'], ['#8f7fae','lavender'], ['#6d5c8c','plum'], ['#b99b4e','gold'], ['#7d9068','sage']
+    ];
+    var stickerTiles = STICKER_ORDER.map(function(key){
+      return '<button type="button" class="sticker-tile" data-sticker="' + key + '" title="' + key + '">' + stickerSVG(key) + '</button>';
+    }).join('');
+    return '' +
+      '<div class="rte-toolbar" id="rteToolbar">' +
+        '<select id="rteFont" title="Font">' +
+          '<option value="EB Garamond">Garamond</option>' +
+          '<option value="Cormorant Garamond">Cormorant</option>' +
+          '<option value="Karla">Karla</option>' +
+          '<option value="Caveat">Handwritten</option>' +
+          '<option value="IBM Plex Mono">Mono</option>' +
+        '</select>' +
+        '<select id="rteSize" title="Size">' +
+          '<option value="2">Small</option>' +
+          '<option value="3" selected>Normal</option>' +
+          '<option value="5">Large</option>' +
+          '<option value="7">X-Large</option>' +
+        '</select>' +
+        '<div class="rte-sep"></div>' +
+        '<button type="button" data-cmd="bold" title="Bold"><b>B</b></button>' +
+        '<button type="button" data-cmd="italic" title="Italic"><i>I</i></button>' +
+        '<button type="button" data-cmd="underline" title="Underline"><u>U</u></button>' +
+        '<button type="button" data-cmd="insertUnorderedList" title="Bullet list">&#8226;&#8226;</button>' +
+        '<div class="rte-sep"></div>' +
+        colors.map(function(c){ return '<button type="button" class="rte-swatch" data-color="' + c[0] + '" style="background:' + c[0] + ';" title="' + c[1] + '"></button>'; }).join('') +
+        '<input type="color" id="rteCustomColor" class="rte-color-input" title="Custom color" value="#33402c">' +
+        '<div class="rte-sep"></div>' +
+        '<button type="button" id="rteInsertImage" title="Insert image">' + iconSVG('image') + '</button>' +
+        '<button type="button" id="rteInsertVideo" title="Insert video">' + iconSVG('video') + '</button>' +
+        '<button type="button" id="rteInsertSticker" title="Insert sticker">' + iconSVG('sparkleSmall') + '</button>' +
+        '<button type="button" id="rteClear" title="Clear formatting">Clear</button>' +
+        '<div class="sticker-pop" id="stickerPop" hidden>' + stickerTiles + '</div>' +
+        '<input type="file" id="rteImageInput" class="hidden-input" accept="image/*">' +
+        '<input type="file" id="rteVideoInput" class="hidden-input" accept="video/*">' +
+      '</div>';
+  }
+
+  function iconSVG(which){
+    var d = {
+      image:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 16l-5-5-4 4-3-3-5 5"/>',
+      video:'<rect x="3" y="5" width="14" height="14" rx="2"/><path d="M17 9l4-2v10l-4-2z"/>',
+      sparkleSmall:'<path d="M12 3v5"/><path d="M12 16v5"/><path d="M3 12h5"/><path d="M16 12h5"/>'
+    }[which];
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+  }
+
+  function openEditor(existingId){
+    var existing = existingId ? ENTRIES.find(function(x){ return x.id === existingId; }) : null;
+    var modal = document.getElementById('editorModal');
+    var placeholders = {
+      poem:'Let it arrive in lines…',
+      story:'Once upon a moment…',
+      log:'How did today go?',
+      blog:'What\'s on your mind?'
+    };
+    modal.innerHTML =
+      '<div class="modal-panel editor-panel" role="dialog" aria-modal="true" aria-labelledby="editorTitle">' +
+        '<button class="modal-close" id="editorCloseBtn" aria-label="Close">&times;</button>' +
+        '<h2 id="editorTitle" style="margin-bottom:18px;">' + (existing ? 'Edit page' : 'Write a new page') + '</h2>' +
+        '<div class="form-three">' +
+          '<div class="form-row"><label for="fKind">Kind</label><select id="fKind">' +
+            Object.keys(KINDS).map(function(k){ return '<option value="' + k + '"' + (existing && existing.kind===k ? ' selected' : (!existing && k==='poem' ? ' selected':'')) + '>' + KINDS[k].label + '</option>'; }).join('') +
+          '</select></div>' +
+          '<div class="form-row"><label for="fCategory">Mood</label><select id="fCategory">' +
+            '<option value="self"' + (existing && existing.category==='self' ? ' selected' : '') + '>Self</option>' +
+            '<option value="adventure"' + (existing && existing.category==='adventure' ? ' selected' : '') + '>Adventure</option>' +
+            '<option value="life"' + (!existing || existing.category==='life' ? ' selected' : '') + '>Life</option>' +
+          '</select></div>' +
+          '<div class="form-row"><label for="fDate">Date</label><input type="date" id="fDate" value="' + (existing ? existing.date : new Date().toISOString().slice(0,10)) + '"></div>' +
+        '</div>' +
+        '<div class="form-row"><label for="fTitle">Title</label><input id="fTitle" required maxlength="100" value="' + (existing ? escapeHTML(existing.title) : '') + '"></div>' +
+        '<div class="form-row"><label for="fMood">Mood tag (optional)</label><input id="fMood" maxlength="30" value="' + (existing && existing.mood ? escapeHTML(existing.mood) : '') + '"></div>' +
+        '<div class="form-row"><label>The page</label>' +
+          toolbarHTML() +
+          '<div class="rte-body" id="rteBody" contenteditable="true" data-placeholder="' + (existing ? '' : (placeholders[(existing&&existing.kind)||'poem'])) + '">' + (existing ? existing.bodyHtml : '') + '</div>' +
+        '</div>' +
+        '<p class="rte-note">Saved privately in this browser. Images and short video clips are welcome — very large videos may be slow to save.</p>' +
+        '<div class="form-actions">' +
+          (existing ? '<button type="button" class="btn danger" id="editorDeleteBtn">Delete page</button>' : '<span></span>') +
+          '<button type="button" class="btn primary" id="editorSaveBtn">Save page</button>' +
+        '</div>' +
+      '</div>';
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+
+    var rteBody = $('#rteBody', modal);
+    var toolbar = $('#rteToolbar', modal);
+
+    $('#editorCloseBtn', modal).addEventListener('click', closeEditor);
+
+    $all('[data-cmd]', toolbar).forEach(function(btn){
+      btn.addEventListener('mousedown', function(e){ e.preventDefault(); saveSelectionIfInside(rteBody); });
+      btn.addEventListener('click', function(){ restoreSelection(rteBody); exec(btn.getAttribute('data-cmd')); });
+    });
+    $all('.rte-swatch', toolbar).forEach(function(sw){
+      sw.addEventListener('mousedown', function(e){ e.preventDefault(); saveSelectionIfInside(rteBody); });
+      sw.addEventListener('click', function(){ restoreSelection(rteBody); exec('foreColor', sw.getAttribute('data-color')); });
+    });
+    var customColor = $('#rteCustomColor', toolbar);
+    customColor.addEventListener('mousedown', function(){ saveSelectionIfInside(rteBody); });
+    customColor.addEventListener('input', function(){ restoreSelection(rteBody); exec('foreColor', customColor.value); });
+
+    var fontSel = $('#rteFont', toolbar);
+    fontSel.addEventListener('mousedown', function(){ saveSelectionIfInside(rteBody); });
+    fontSel.addEventListener('change', function(){ restoreSelection(rteBody); exec('fontName', fontSel.value); });
+    var sizeSel = $('#rteSize', toolbar);
+    sizeSel.addEventListener('mousedown', function(){ saveSelectionIfInside(rteBody); });
+    sizeSel.addEventListener('change', function(){ restoreSelection(rteBody); exec('fontSize', sizeSel.value); });
+
+    $('#rteClear', toolbar).addEventListener('mousedown', function(e){ e.preventDefault(); saveSelectionIfInside(rteBody); });
+    $('#rteClear', toolbar).addEventListener('click', function(){ restoreSelection(rteBody); exec('removeFormat'); });
+
+    var stickerPop = $('#stickerPop', toolbar);
+    var stickerBtn = $('#rteInsertSticker', toolbar);
+    stickerBtn.addEventListener('mousedown', function(e){ e.preventDefault(); saveSelectionIfInside(rteBody); });
+    stickerBtn.addEventListener('click', function(){ stickerPop.hidden = !stickerPop.hidden; });
+    $all('.sticker-tile', stickerPop).forEach(function(tile){
+      tile.addEventListener('mousedown', function(e){ e.preventDefault(); });
+      tile.addEventListener('click', function(){
+        restoreSelection(rteBody);
+        exec('insertHTML', stickerSVG(tile.getAttribute('data-sticker')));
+        stickerPop.hidden = true;
+      });
+    });
+
+    var imageInput = $('#rteImageInput', modal);
+    $('#rteInsertImage', toolbar).addEventListener('mousedown', function(e){ e.preventDefault(); saveSelectionIfInside(rteBody); });
+    $('#rteInsertImage', toolbar).addEventListener('click', function(){ imageInput.click(); });
+    imageInput.addEventListener('change', function(){
+      var file = imageInput.files[0];
+      if (!file) return;
+      showLoader('tucking in your photo…');
+      resizeImageFile(file, 1000, 0.85).then(function(dataUrl){
+        restoreSelection(rteBody);
+        exec('insertHTML', '<img src="' + dataUrl + '" alt="">');
+        hideLoader(600);
+      }).catch(function(){ hideLoader(300); toast('Could not add that image.', 'error'); });
+      imageInput.value = '';
+    });
+
+    var videoInput = $('#rteVideoInput', modal);
+    $('#rteInsertVideo', toolbar).addEventListener('mousedown', function(e){ e.preventDefault(); saveSelectionIfInside(rteBody); });
+    $('#rteInsertVideo', toolbar).addEventListener('click', function(){ videoInput.click(); });
+    videoInput.addEventListener('change', function(){
+      var file = videoInput.files[0];
+      if (!file) return;
+      if (file.size > 30 * 1024 * 1024){ toast('That video is quite large — try a shorter clip (under ~30MB).', 'error'); videoInput.value=''; return; }
+      showLoader('winding up your video…');
+      var reader = new FileReader();
+      reader.onload = function(){
+        restoreSelection(rteBody);
+        exec('insertHTML', '<video controls src="' + reader.result + '"></video>');
+        hideLoader(700);
+      };
+      reader.onerror = function(){ hideLoader(300); toast('Could not add that video.', 'error'); };
+      reader.readAsDataURL(file);
+      videoInput.value = '';
+    });
+
+    document.addEventListener('click', function closePop(e){
+      if (!toolbar.contains(e.target)) stickerPop.hidden = true;
+    });
+
+    $('#editorSaveBtn', modal).addEventListener('click', function(){
+      var title = $('#fTitle', modal).value.trim();
+      var bodyHtml = rteBody.innerHTML.trim();
+      if (!title || stripHtml(bodyHtml).length === 0){ toast('A title and a few words are needed.', 'error'); return; }
+      var entry = {
+        id: existing ? existing.id : 'entry-' + slugify(title) + '-' + Date.now().toString(36),
+        kind: $('#fKind', modal).value,
+        title: title,
+        category: $('#fCategory', modal).value,
+        date: $('#fDate', modal).value || new Date().toISOString().slice(0,10),
+        mood: $('#fMood', modal).value.trim(),
+        bodyHtml: bodyHtml,
+        pinned: existing ? !!existing.pinned : false,
+        sample: false
+      };
+      dbPut(entry).then(function(){
+        if (existing){ ENTRIES = ENTRIES.map(function(x){ return x.id === existing.id ? entry : x; }); }
+        else { ENTRIES.push(entry); }
+        renderChapters(); renderHero();
+        closeEditor();
+        toast('Saved to this browser', 'success');
+      }).catch(function(){ toast('Could not save — your browser storage may be full.', 'error'); });
+    });
+
+    var delBtn = $('#editorDeleteBtn', modal);
+    if (delBtn) delBtn.addEventListener('click', function(){ deleteEntry(existing.id); closeEditor(); });
+  }
+
+  function closeEditor(){
+    var modal = document.getElementById('editorModal');
+    modal.hidden = true;
+    modal.innerHTML = '';
+    document.body.style.overflow = '';
+  }
+
+  /* ---------------- backup export / import ---------------- */
+  function exportBackup(){
+    showLoader('packing up your pages…');
+    var payload = { exportedAt: new Date().toISOString(), app:'sua-notebook', entries: ENTRIES };
+    var blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' });
+    var filename = 'sua-notebook-backup-' + new Date().toISOString().slice(0,10) + '.json';
+    if (window.claude && typeof window.claude.use === 'function'){
+      window.claude.use('downloads').then(function(dl){
+        if (!dl){ saveBlobAsFile(blob, filename); hideLoader(700); toast('Backup downloaded', 'success'); return; }
+        dl.save({ filename: filename, data: blob }).then(function(){ hideLoader(400); toast('Backup saved', 'success'); })
+          .catch(function(){ saveBlobAsFile(blob, filename); hideLoader(400); });
+      }).catch(function(){ saveBlobAsFile(blob, filename); hideLoader(700); });
+    } else {
+      saveBlobAsFile(blob, filename);
+      hideLoader(700);
+      toast('Backup downloaded', 'success');
+    }
+  }
+
+  function importBackup(file){
+    showLoader('unpacking your backup…');
+    var reader = new FileReader();
+    reader.onload = function(){
+      var data;
+      try { data = JSON.parse(reader.result); } catch(e){ hideLoader(300); toast('That file could not be read.', 'error'); return; }
+      var entries = Array.isArray(data) ? data : (data && Array.isArray(data.entries) ? data.entries : null);
+      if (!entries){ hideLoader(300); toast('That doesn\'t look like a Sua Notebook backup.', 'error'); return; }
+      dbPutMany(entries).then(function(){
+        return dbGetAll();
+      }).then(function(rows){
+        ENTRIES = rows;
+        renderChapters(); renderHero();
+        hideLoader(700);
+        toast('Imported ' + entries.length + ' page(s)', 'success');
+      }).catch(function(){ hideLoader(300); toast('Import failed.', 'error'); });
+    };
+    reader.onerror = function(){ hideLoader(300); toast('Could not read that file.', 'error'); };
+    reader.readAsText(file);
+  }
+
+  /* ---------------- events ---------------- */
+  function bindEvents(){
+    document.getElementById('themeToggle').addEventListener('click', function(){
+      var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      storeTheme(next);
+    });
+    document.getElementById('moodSelect').addEventListener('change', function(e){
+      state.filterMood = e.target.value; renderChapters();
+    });
+    document.getElementById('searchInput').addEventListener('input', function(e){
+      state.search = e.target.value; renderChapters();
+    });
+    document.getElementById('sortSelect').addEventListener('change', function(e){
+      state.sort = e.target.value; renderChapters();
+    });
+    document.getElementById('surpriseBtn').addEventListener('click', function(){
+      var list = computeVisible().length ? computeVisible() : ENTRIES;
+      if (!list.length) { toast('Nothing to surprise you with yet.', 'info'); return; }
+      var pick = list[Math.floor(Math.random() * list.length)];
+      openReader(pick.id);
+    });
+    document.getElementById('newEntryBtn').addEventListener('click', function(){ openEditor(null); });
+    document.getElementById('exportBtn').addEventListener('click', exportBackup);
+    var importInput = document.getElementById('importFileInput');
+    document.getElementById('importBtn').addEventListener('click', function(){ importInput.click(); });
+    importInput.addEventListener('change', function(){
+      if (importInput.files[0]) importBackup(importInput.files[0]);
+      importInput.value = '';
+    });
+
+    document.addEventListener('keydown', function(e){
+      var readerOpen = !document.getElementById('readerModal').hidden;
+      var editorOpen = !document.getElementById('editorModal').hidden;
+      if (e.key === 'Escape'){
+        if (editorOpen) closeEditor();
+        else if (readerOpen) closeReader();
+      }
+      if (readerOpen && !editorOpen){
+        if (e.key === 'ArrowLeft') stepReader(-1);
+        if (e.key === 'ArrowRight') stepReader(1);
+      }
+    });
+    document.getElementById('readerModal').addEventListener('click', function(e){
+      if (e.target === this) closeReader();
+    });
+    document.getElementById('editorModal').addEventListener('click', function(e){
+      if (e.target === this) closeEditor();
+    });
+  }
+
+  function init(){
+    showLoader('waking up the notebook…');
+    seedIfEmpty().then(function(){
+      renderHero();
+      renderChapters();
+      bindEvents();
+      hideLoader(3000);
+    }).catch(function(){
+      var seedEl = document.getElementById('seed-data');
+      try { ENTRIES = JSON.parse(seedEl.textContent || '[]'); } catch(e){ ENTRIES = []; }
+      renderHero(); renderChapters(); bindEvents();
+      hideLoader(3000);
+      toast('Your browser blocked local storage, so pages here won\'t be saved between visits.', 'info', 5000);
+    });
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
