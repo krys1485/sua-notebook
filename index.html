@@ -611,6 +611,73 @@
 (function(){
   'use strict';
 
+  /* ---------------- cloud sync (Supabase) ----------------
+     Talks directly to Supabase's REST API (PostgREST) with plain fetch —
+     no extra library to load. This is what makes a page written here on
+     one computer show up when the notebook is opened on another: without
+     it, everything only ever lived in this one browser's IndexedDB, which
+     is why new pages "disappeared" after a restart or on another device.
+     If SUPABASE_URL/KEY are left blank, or the network call fails, the
+     notebook quietly falls back to IndexedDB-only behavior — nothing
+     breaks, it just stops syncing across browsers until the connection
+     is restored. */
+  var SUPABASE_URL = 'https://jacuvhefxyvdwvgilbna.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_d-Pm6REi8oU65vFiqUi_-Q_H5c8Blsd';
+  var SUPABASE_TABLE_URL = SUPABASE_URL ? (SUPABASE_URL.replace(/\/$/,'') + '/rest/v1/entries') : null;
+  var cloudOnline = true; // flips to false after a failed call so we stop retrying mid-session
+
+  function cloudHeaders(extra){
+    var h = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' };
+    if (extra) for (var k in extra) h[k] = extra[k];
+    return h;
+  }
+  function toCloudRow(e){
+    return {
+      id: e.id, kind: e.kind, title: e.title, category: e.category || null,
+      date: e.date || null, mood: e.mood || null, pinned: !!e.pinned,
+      sample: !!e.sample, body_html: e.bodyHtml || ''
+    };
+  }
+  function fromCloudRow(r){
+    return {
+      id: r.id, kind: r.kind, title: r.title, category: r.category,
+      date: r.date, mood: r.mood, pinned: !!r.pinned, sample: !!r.sample,
+      bodyHtml: r.body_html || ''
+    };
+  }
+  function sbFetchAll(){
+    if (!SUPABASE_TABLE_URL) return Promise.resolve(null);
+    return fetch(SUPABASE_TABLE_URL + '?select=*', { headers: cloudHeaders() })
+      .then(function(res){ if (!res.ok) throw new Error('sb fetch ' + res.status); return res.json(); })
+      .then(function(rows){ cloudOnline = true; return rows.map(fromCloudRow); })
+      .catch(function(err){ cloudOnline = false; console.warn('Supabase fetch failed, using local copy only:', err); return null; });
+  }
+  function sbUpsert(entry){
+    if (!SUPABASE_TABLE_URL || !cloudOnline) return Promise.resolve(false);
+    return fetch(SUPABASE_TABLE_URL, {
+      method: 'POST',
+      headers: cloudHeaders({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+      body: JSON.stringify([toCloudRow(entry)])
+    }).then(function(res){ if (!res.ok) throw new Error('sb upsert ' + res.status); cloudOnline = true; return true; })
+      .catch(function(err){ cloudOnline = false; console.warn('Supabase save failed, kept locally only:', err); return false; });
+  }
+  function sbBulkUpsert(entries){
+    if (!SUPABASE_TABLE_URL || !entries.length) return Promise.resolve(false);
+    return fetch(SUPABASE_TABLE_URL, {
+      method: 'POST',
+      headers: cloudHeaders({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+      body: JSON.stringify(entries.map(toCloudRow))
+    }).then(function(res){ if (!res.ok) throw new Error('sb bulk ' + res.status); cloudOnline = true; return true; })
+      .catch(function(err){ cloudOnline = false; console.warn('Supabase bulk save failed:', err); return false; });
+  }
+  function sbDelete(id){
+    if (!SUPABASE_TABLE_URL || !cloudOnline) return Promise.resolve(false);
+    return fetch(SUPABASE_TABLE_URL + '?id=eq.' + encodeURIComponent(id), {
+      method: 'DELETE', headers: cloudHeaders()
+    }).then(function(res){ if (!res.ok) throw new Error('sb delete ' + res.status); return true; })
+      .catch(function(err){ console.warn('Supabase delete failed:', err); return false; });
+  }
+
   /* ---------------- theme (light = the notebook's own look, dark = an alternate palette) ---------------- */
   var THEME_KEY = 'sua-notebook-theme';
   function applyTheme(theme){
@@ -1065,6 +1132,7 @@
     dbPut(p).then(function(){
       renderChapters(); renderHero();
       if (!document.getElementById('readerModal').hidden) openReader(id);
+      sbUpsert(p);
     });
   }
 
@@ -1074,6 +1142,7 @@
       closeReader();
       renderChapters(); renderHero();
       toast('Page deleted', 'info');
+      sbDelete(id);
     });
   }
 
@@ -1431,7 +1500,9 @@
         else { ENTRIES.push(entry); }
         renderChapters(); renderHero();
         closeEditor();
-        toast('Saved to this browser', 'success');
+        return sbUpsert(entry);
+      }).then(function(savedToCloud){
+        toast(savedToCloud ? 'Saved' : 'Saved to this browser (offline — will not sync until reconnected)', savedToCloud ? 'success' : 'info');
       }).catch(function(){ toast('Could not save — your browser storage may be full.', 'error'); });
     });
 
@@ -1480,6 +1551,7 @@
         renderChapters(); renderHero();
         hideLoader(700);
         toast('Imported ' + entries.length + ' page(s)', 'success');
+        sbBulkUpsert(entries);
       }).catch(function(){ hideLoader(300); toast('Import failed.', 'error'); });
     };
     reader.onerror = function(){ hideLoader(300); toast('Could not read that file.', 'error'); };
@@ -1537,13 +1609,44 @@
     });
   }
 
+  /* ---------------- cloud sync on load ----------------
+     Reconciles this browser's IndexedDB copy with the shared Supabase
+     table. If the table is empty (first time it's ever been connected),
+     whatever is sitting locally — the seed poems plus anything already
+     written here — gets pushed up so the cloud becomes the shared copy
+     going forward. Once the cloud has data, it's treated as the source
+     of truth; anything found only in this browser (written while
+     offline, say) is pushed up too rather than silently dropped. */
+  function syncFromCloud(){
+    return sbFetchAll().then(function(cloudRows){
+      if (cloudRows === null) return; // not configured, or offline — keep local copy as-is
+      if (cloudRows.length === 0){
+        return sbBulkUpsert(ENTRIES);
+      }
+      return dbGetAll().then(function(localRows){
+        var cloudIds = cloudRows.map(function(r){ return r.id; });
+        var localOnly = localRows.filter(function(r){ return cloudIds.indexOf(r.id) === -1; });
+        var pushUp = localOnly.length ? sbBulkUpsert(localOnly) : Promise.resolve();
+        return pushUp.then(function(){
+          var merged = cloudRows.concat(localOnly);
+          return dbPutMany(merged).then(function(){ ENTRIES = merged; });
+        });
+      });
+    });
+  }
+
   function init(){
     showLoader('waking up the notebook…');
     seedIfEmpty().then(function(){
+      return syncFromCloud();
+    }).then(function(){
       renderHero();
       renderChapters();
       bindEvents();
       hideLoader(3000);
+      if (SUPABASE_TABLE_URL && !cloudOnline){
+        toast('Could not reach the cloud — showing what\'s saved on this browser.', 'info', 4000);
+      }
     }).catch(function(){
       var seedEl = document.getElementById('seed-data');
       try { ENTRIES = JSON.parse(seedEl.textContent || '[]'); } catch(e){ ENTRIES = []; }
